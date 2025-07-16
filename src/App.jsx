@@ -1,34 +1,14 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>GPT Link Hub</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+    <div className="min-h-screen bg-gray-100 text-center flex flex-col items-center justify-center">
+      <h1 className="text-3xl font-bold text-blue-600">GPT Link Hub</h1>
+      <p className="text-gray-700 mt-4">
+        蒐集與分類各種 ChatGPT 對話連結的平台
       </p>
-    </>
+      <button className="mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        馬上開始探索
+      </button>
+    </div>
   )
 }
 
