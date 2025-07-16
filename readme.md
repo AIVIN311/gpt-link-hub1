@@ -1,17 +1,23 @@
-# React + Vite
+# GPT Link Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+GPT Link Hub is an open-source portal for collecting and exploring public AI chat links from services such as ChatGPT, Claude and Gemini. It aims to preserve useful conversations and make them easy to browse by topic.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install       # install dependencies
+npm run dev       # start local development server
+npm run build     # create a production build
+npm run preview   # preview the build
+```
 
-## Expanding the ESLint configuration
+## Usage
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
----
+1. Run `npm run dev` and open `http://localhost:5173` in your browser.
+2. Paste a shareable conversation link into the form.
+3. Browse or search the shared links by category and tags.
 
+Enjoy exploring the collective knowledge of AI conversations!
 # 🌐 GPT-Link Hub
 
 **收集、分類、探索全世界公開 AI 對話連結的分享平台**
