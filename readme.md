@@ -69,7 +69,7 @@ npm run dev
 預設網址為：
 
 ```
-http://localhost:3000
+http://localhost:5173
 ```
 
 ---
