@@ -2,9 +2,13 @@ import React from 'react'
 
 function Header() {
   return (
-    <header className="p-4 bg-gray-100 border-b">
-      <img src="/logo.png" alt="Logo" />
-      <h1 className="text-xl font-bold">GPT Link Hub</h1>
+    <header className="space-y-4">
+      <img
+        src="/vite.svg"
+        alt="GPT Link Hub logo"
+        className="w-24 h-24 mx-auto rounded-full bg-white p-2 shadow"
+      />
+      <h1 className="text-4xl font-bold">GPT Link Hub</h1>
     </header>
   )
 }
