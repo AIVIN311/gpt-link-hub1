@@ -16,6 +16,16 @@ npm run docs      # build the documentation site
 
 The documentation site lives in the `docs` folder. Run `npm run docs` to generate the static files in `docs/.vitepress/dist`.
 
+## Development status
+
+The repository contains a basic React frontend and Express API server.
+Implemented agents so far:
+
+- `ValidatorAgent` – checks if a link is a public share URL.
+- `MetaAgent` – extracts simple metadata from the link.
+
+All other agents described in `AGENTS.md` are not yet part of the codebase.
+
 ## Usage
 
 1. Run `npm run dev` and open `http://localhost:5173` in your browser.
