@@ -9,7 +9,12 @@ npm install       # install dependencies
 npm run dev       # start local development server
 npm run build     # create a production build
 npm run preview   # preview the build
+npm run docs      # build the documentation site
 ```
+
+## Documentation
+
+The documentation site lives in the `docs` folder. Run `npm run docs` to generate the static files in `docs/.vitepress/dist`.
 
 ## Usage
 
