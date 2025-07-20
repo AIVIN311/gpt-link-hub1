@@ -8,13 +8,15 @@ function UploadLinkBox({ onAdd }) {
     if (!link) return
 
     try {
+      console.log('Submitting link', link)
       const res = await fetch('/api/validate-meta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: link }),
+        body: JSON.stringify({ link }),
       })
       if (!res.ok) throw new Error('Request failed')
       const data = await res.json()
+      console.log('Response', data)
       if (onAdd) onAdd(data)
       setLink('')
     } catch (err) {
