@@ -5,7 +5,7 @@ function Home() {
   return (
     <div>
       <Header />
-      <main className="p-4">
+      <main className="p-4 mx-auto max-w-screen-sm">
         <p>Welcome to GPT Link Hub</p>
       </main>
     </div>
