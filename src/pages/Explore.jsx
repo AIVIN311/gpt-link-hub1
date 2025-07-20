@@ -20,7 +20,13 @@ function Explore() {
   ])
 
   function handleAdd(data) {
-    setLinks((prev) => [...prev, data])
+    const linkObj = {
+      url: data.link,
+      title: data.title,
+      description: '',
+      tags: [],
+    }
+    setLinks((prev) => [...prev, linkObj])
   }
 
   return (
