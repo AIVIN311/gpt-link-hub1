@@ -19,12 +19,14 @@ function Explore() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-6 space-y-6">
       <Header />
-      <div className="max-w-screen-md mx-auto space-y-4">
-        {links.map((link) => (
-          <LinkCard key={link.url} {...link} />
-        ))}
+      <div className="w-full max-w-screen-md space-y-4">
+        {links.length > 0 ? (
+          links.map((link) => <LinkCard key={link.url} {...link} />)
+        ) : (
+          <p className="text-center text-gray-500">Loading...</p>
+        )}
       </div>
     </div>
   )
