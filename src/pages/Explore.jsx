@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Header from '../components/Header.jsx'
+import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 
 function Explore() {
-  const links = [
+  const [links, setLinks] = useState([
     {
       title: '示範連結 1',
       description: '範例對話描述',
@@ -16,12 +17,17 @@ function Explore() {
       tags: ['AI', '分享'],
       url: 'https://chat.openai.com/share/example-2',
     },
-  ]
+  ])
+
+  function handleAdd(data) {
+    setLinks((prev) => [...prev, data])
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start p-6">
       <div className="w-full max-w-screen-md flex flex-col items-center space-y-6">
         <Header />
+        <UploadLinkBox onAdd={handleAdd} />
         <div className="w-full space-y-4">
           {links.length > 0 ? (
             links.map((link) => <LinkCard key={link.url} {...link} />)
