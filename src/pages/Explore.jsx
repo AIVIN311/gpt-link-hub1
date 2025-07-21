@@ -3,6 +3,17 @@ import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 
+function normalizeItem(data) {
+  return {
+    url: data.url || data.link,
+    title: data.title || '未命名',
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    platform: data.platform || 'Unknown',
+    language: data.language || 'unknown',
+    description: data.description || '',
+  }
+}
+
 function Explore() {
   const [links, setLinks] = useState([
     {
@@ -20,13 +31,12 @@ function Explore() {
   ])
 
   function handleAdd(data) {
-    const linkObj = {
-      url: data.link,
-      title: data.title,
-      description: '',
-      tags: [],
-    }
-    setLinks((prev) => [...prev, linkObj])
+    setLinks((prev) => [...prev, normalizeItem(data)])
+  }
+
+  function renderListItem(link) {
+    console.log('渲染的項目：', link)
+    return <LinkCard key={link.url} {...link} />
   }
 
   return (
@@ -36,7 +46,7 @@ function Explore() {
         <UploadLinkBox onAdd={handleAdd} />
         <div className="w-full space-y-4">
           {links.length > 0 ? (
-            links.map((link) => <LinkCard key={link.url} {...link} />)
+            links.map((link) => renderListItem(link))
           ) : (
             <p className="text-center text-gray-500">Loading...</p>
           )}
