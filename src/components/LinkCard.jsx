@@ -1,12 +1,17 @@
 import React from 'react'
 
 function LinkCard({ title, description, tags = [], url }) {
+  const displayTitle = title || '未命名'
+  const displayTags = tags?.length > 0 ? tags : ['未分類']
+
+  console.log('渲染的項目：', { title, description, tags, url })
+
   return (
     <div className="bg-white p-4 rounded shadow space-y-2">
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-xl font-semibold">{displayTitle}</h2>
       <p className="text-gray-700">{description}</p>
       <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
+        {displayTags.map((tag) => (
           <span
             key={tag}
             className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
