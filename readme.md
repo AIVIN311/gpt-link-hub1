@@ -29,7 +29,8 @@ All other agents described in `AGENTS.md` are not yet part of the codebase.
 ## Usage
 
 1. Run `npm run dev` and open `http://localhost:5173` in your browser.
-2. Paste a shareable conversation link into the form.
+2. Enter the link along with an optional custom title and comma-separated tags,
+   then click **新增** to submit.
 3. Browse or search the shared links by category and tags.
 
 Enjoy exploring the collective knowledge of AI conversations!
