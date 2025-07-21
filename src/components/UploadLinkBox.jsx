@@ -26,7 +26,7 @@ export default function UploadLinkBox({ onAdd }) {
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow space-y-3 w-full">
+    <div className="bg-white p-4 rounded shadow space-y-3 w-full max-w-md">
       <input
         className="w-full border rounded px-3 py-2"
         placeholder="貼上公開分享連結"
@@ -46,7 +46,7 @@ export default function UploadLinkBox({ onAdd }) {
         onChange={(e) => setTags(e.target.value)}
       />
       <button
-        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
         onClick={handleSubmit}
       >
         新增
