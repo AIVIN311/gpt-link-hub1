@@ -4,7 +4,6 @@ function LinkCard({ title, description, tags = [], url }) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
 
-  console.log('渲染的項目：', { title, description, tags, url })
 
   return (
     <div className="bg-white p-4 rounded shadow space-y-2">

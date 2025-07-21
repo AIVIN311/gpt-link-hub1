@@ -35,7 +35,6 @@ function Explore() {
   }
 
   function renderListItem(link) {
-    console.log('渲染的項目：', link)
     return <LinkCard key={link.url} {...link} />
   }
 
