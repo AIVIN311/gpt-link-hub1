@@ -1,47 +1,56 @@
-import React, { useState } from 'react'
+import { useState } from 'react';
 
-function UploadLinkBox({ onAdd }) {
-  const [link, setLink] = useState('')
+export default function UploadLinkBox({ onAdd }) {
+  const [link, setLink] = useState('');
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState('');
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!link) return
+  const handleSubmit = () => {
+    if (!link.trim()) return;
 
-    try {
-      console.log('Submitting link', link)
-      const res = await fetch('/api/validate-meta', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ link }),
-      })
-      if (!res.ok) throw new Error('Request failed')
-      const data = await res.json()
-      console.log('Response', data)
-      if (onAdd) onAdd(data)
-      setLink('')
-    } catch (err) {
-      console.error(err)
-    }
-  }
+    const tagList = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t);
+
+    onAdd({
+      url: link.trim(),
+      title: title.trim(),
+      tags: tagList,
+    });
+
+    // 清空欄位
+    setLink('');
+    setTitle('');
+    setTags('');
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full gap-2">
+    <div className="bg-white p-4 rounded shadow space-y-3 w-full">
       <input
-        type="url"
-        required
+        className="w-full border rounded px-3 py-2"
         placeholder="貼上公開分享連結"
-        className="flex-grow p-2 border rounded"
         value={link}
         onChange={(e) => setLink(e.target.value)}
       />
+      <input
+        className="w-full border rounded px-3 py-2"
+        placeholder="自訂標題（可留空）"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <input
+        className="w-full border rounded px-3 py-2"
+        placeholder="標籤（以逗號分隔，例如 ChatGPT, 分類A）"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+      />
       <button
-        type="submit"
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+        onClick={handleSubmit}
       >
         新增
       </button>
-    </form>
-  )
+    </div>
+  );
 }
-
-export default UploadLinkBox
