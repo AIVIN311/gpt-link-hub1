@@ -39,11 +39,11 @@ function Explore() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4">
-      <div className="w-full max-w-screen-md mx-auto flex flex-col items-start space-y-6 py-6">
+    <div className="min-h-screen bg-gray-50 px-4 flex justify-center items-start">
+      <div className="w-full max-w-screen-md space-y-6">
         <Header />
         <UploadLinkBox onAdd={handleAdd} />
-        <div className="w-full space-y-4">
+        <div className="space-y-4">
           {links.length > 0 ? (
             links.map((link) => renderListItem(link))
           ) : (
