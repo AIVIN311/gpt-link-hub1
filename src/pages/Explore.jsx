@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
+import PreviewCard from '../components/PreviewCard.jsx'
 
 function normalizeItem(data) {
   return {
@@ -62,7 +63,7 @@ function Explore() {
           </div>
           <div className="w-1/2">
             {selectedLink ? (
-              <LinkCard {...selectedLink} />
+              <PreviewCard key={selectedLink.url} {...selectedLink} />
             ) : (
               <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
                 請選擇一個連結以預覽
