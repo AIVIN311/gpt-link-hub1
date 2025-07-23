@@ -1,12 +1,15 @@
 import React from 'react'
 
-function LinkCard({ title, description, tags = [], url }) {
+function LinkCard({ title, description, tags = [], url, onSelect }) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
 
 
   return (
-    <div className="bg-white p-4 rounded shadow space-y-2">
+    <div
+      className="bg-white p-4 rounded-lg shadow space-y-2 cursor-pointer"
+      onClick={onSelect}
+    >
       <h2 className="text-xl font-semibold">{displayTitle}</h2>
       <p className="text-gray-700">{description}</p>
       <div className="flex flex-wrap gap-2">
