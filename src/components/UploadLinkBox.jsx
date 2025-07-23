@@ -28,19 +28,19 @@ export default function UploadLinkBox({ onAdd }) {
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded shadow space-y-3 w-full max-w-md">
       <input
-        className="w-full border rounded bg-white dark:bg-gray-700 dark:text-white dark:border-gray-500 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="貼上公開分享連結"
         value={link}
         onChange={(e) => setLink(e.target.value)}
       />
       <input
-        className="w-full border rounded bg-white dark:bg-gray-700 dark:text-white dark:border-gray-500 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="自訂標題（可留空）"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
       <input
-        className="w-full border rounded bg-white dark:bg-gray-700 dark:text-white dark:border-gray-500 px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="標籤（以逗號分隔，例如 ChatGPT, 分類A）"
         value={tags}
         onChange={(e) => setTags(e.target.value)}
