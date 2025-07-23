@@ -13,6 +13,19 @@ export default function UploadLinkBox({ onAdd }) {
       .map((t) => t.trim())
       .filter((t) => t);
 
+    const keywordMap = {
+      GPT: 'ChatGPT',
+      AI: 'AI',
+      YouTube: '影音',
+    };
+
+    const text = `${title} ${link}`.toLowerCase();
+    Object.entries(keywordMap).forEach(([keyword, suggested]) => {
+      if (text.includes(keyword.toLowerCase()) && !tagList.includes(suggested)) {
+        tagList.push(suggested);
+      }
+    });
+
     onAdd({
       url: link.trim(),
       title: title.trim(),
