@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
@@ -32,8 +32,34 @@ function Explore() {
   ])
   const [selectedLink, setSelectedLink] = useState(null)
 
+  useEffect(() => {
+    const stored = localStorage.getItem('links')
+    if (stored) {
+      try {
+        setLinks(JSON.parse(stored))
+      } catch (e) {
+        console.error('Failed to parse links from localStorage', e)
+      }
+    }
+  }, [])
+
   function handleAdd(data) {
-    setLinks((prev) => [...prev, normalizeItem(data)])
+    setLinks((prev) => {
+      const next = [...prev, normalizeItem(data)]
+      localStorage.setItem('links', JSON.stringify(next))
+      return next
+    })
+  }
+
+  function handleDelete(id) {
+    setLinks((prev) => {
+      const next = prev.filter((item) => item.url !== id)
+      localStorage.setItem('links', JSON.stringify(next))
+      return next
+    })
+    if (selectedLink && selectedLink.url === id) {
+      setSelectedLink(null)
+    }
   }
 
   function renderListItem(link) {
@@ -42,6 +68,7 @@ function Explore() {
         key={link.url}
         {...link}
         onSelect={() => setSelectedLink(link)}
+        onDelete={handleDelete}
       />
     )
   }
@@ -57,13 +84,13 @@ function Explore() {
               {links.length > 0 ? (
                 links.map((link) => renderListItem(link))
               ) : (
-                <p className="text-center text-gray-500">目前沒有連結</p>
+                <p className="text-center text-gray-500">Loading...</p>
               )}
             </div>
           </div>
           <div className="w-1/2">
             {selectedLink ? (
-              <PreviewCard key={selectedLink.url} {...selectedLink} />
+              <LinkCard {...selectedLink} />
             ) : (
               <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
                 請選擇一個連結以預覽

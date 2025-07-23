@@ -1,6 +1,6 @@
 import React from 'react'
 
-function LinkCard({ title, description, tags = [], url, onSelect }) {
+function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
 
@@ -16,12 +16,20 @@ function LinkCard({ title, description, tags = [], url, onSelect }) {
 
   return (
     <div
-      className={`${baseClass}${onSelect ? ' cursor-pointer' : ''}`}
+      className="bg-white p-4 rounded-lg shadow relative space-y-2 cursor-pointer"
       onClick={onSelect}
-      role={onSelect ? 'button' : undefined}
-      tabIndex={onSelect ? 0 : undefined}
-      onKeyDown={onSelect ? handleKeyDown : undefined}
     >
+      {onDelete && (
+        <button
+          className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(url)
+          }}
+        >
+          🗑️
+        </button>
+      )}
       <h2 className="text-xl font-semibold">{displayTitle}</h2>
       <p className="text-gray-700">{description}</p>
       <div className="flex flex-wrap gap-2">
