@@ -29,44 +29,26 @@ function Explore() {
       url: 'https://chat.openai.com/share/example-2',
     },
   ])
-  const [selectedLink, setSelectedLink] = useState(null)
 
   function handleAdd(data) {
     setLinks((prev) => [...prev, normalizeItem(data)])
   }
 
   function renderListItem(link) {
-    return (
-      <LinkCard
-        key={link.url}
-        {...link}
-        onSelect={() => setSelectedLink(link)}
-      />
-    )
+    return <LinkCard key={link.url} {...link} />
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8">
       <div className="w-full max-w-screen-lg space-y-6">
         <Header />
-        <div className="flex gap-6">
-          <div className="w-1/2 space-y-6">
-            <UploadLinkBox onAdd={handleAdd} />
-            <div className="space-y-6">
-              {links.length > 0 ? (
-                links.map((link) => renderListItem(link))
-              ) : (
-                <p className="text-center text-gray-500">Loading...</p>
-              )}
-            </div>
-          </div>
-          <div className="w-1/2">
-            {selectedLink ? (
-              <LinkCard {...selectedLink} />
+        <div className="flex flex-col gap-6">
+          <UploadLinkBox onAdd={handleAdd} />
+          <div className="space-y-6">
+            {links.length > 0 ? (
+              links.map((link) => renderListItem(link))
             ) : (
-              <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
-                請選擇一個連結以預覽
-              </div>
+              <p className="text-center text-gray-500">Loading...</p>
             )}
           </div>
         </div>
