@@ -57,7 +57,7 @@ function Explore() {
               {links.length > 0 ? (
                 links.map((link) => renderListItem(link))
               ) : (
-                <p className="text-center text-gray-500">Loading...</p>
+                <p className="text-center text-gray-500">目前沒有連結</p>
               )}
             </div>
           </div>
