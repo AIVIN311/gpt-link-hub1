@@ -16,7 +16,7 @@ function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
 
   return (
     <div
-      className="bg-white p-4 rounded-lg shadow relative space-y-2 cursor-pointer"
+      className="bg-white p-2 md:p-4 rounded-lg shadow relative space-y-2 cursor-pointer text-sm md:text-base"
       onClick={onSelect}
     >
       {onDelete && (
@@ -46,7 +46,7 @@ function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className="block w-full text-center md:inline-block md:w-auto mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
       >
         前往連結
       </a>

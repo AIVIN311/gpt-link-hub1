@@ -77,8 +77,8 @@ function Explore() {
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8">
       <div className="w-full max-w-screen-lg space-y-6">
         <Header />
-        <div className="flex gap-6">
-          <div className="w-1/2 space-y-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
             <div className="space-y-6">
               {links.length > 0 ? (
@@ -88,7 +88,7 @@ function Explore() {
               )}
             </div>
           </div>
-          <div className="w-1/2">
+          <div className="w-full md:w-1/2 mt-6 md:mt-0">
             {selectedLink ? (
               <LinkCard {...selectedLink} />
             ) : (
