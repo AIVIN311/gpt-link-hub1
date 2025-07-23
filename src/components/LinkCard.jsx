@@ -20,7 +20,7 @@ function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
           🗑️
         </button>
       )}
-      <h2 className="text-xl font-semibold">{displayTitle}</h2>
+      <h2 className="text-xl font-semibold text-black">{displayTitle}</h2>
       <p className="text-gray-700">{description}</p>
       <div className="flex flex-wrap gap-2">
         {displayTags.map((tag) => (
