@@ -4,7 +4,6 @@ function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
 
-
   return (
     <div
       className="bg-white p-2 md:p-4 rounded-lg shadow relative space-y-2 cursor-pointer text-sm md:text-base"
