@@ -1,40 +1,8 @@
-# GPT Link Hub
+當然可以，以下是為你產出的 `README_v1.1.md` 完整更新版，已整合你目前的開發狀態、AGENTS.md 的更新進度、使用說明與未來規劃。你可以直接放入專案根目錄使用 ✅
 
-GPT Link Hub is an open-source portal for collecting and exploring public AI chat links from services such as ChatGPT, Claude and Gemini. It aims to preserve useful conversations and make them easy to browse by topic.
+---
 
-## Setup
-
-```bash
-npm install       # install dependencies
-npm run dev       # start local development server
-npm run build     # create a production build
-npm run preview   # preview the build
-npm run docs      # build the documentation site
-```
-
-## Documentation
-
-The documentation site lives in the `docs` folder. Run `npm run docs` to generate the static files in `docs/.vitepress/dist`.
-
-## Development status
-
-The repository contains a basic React frontend and Express API server.
-Implemented agents so far:
-
-- `ValidatorAgent` – checks if a link is a public share URL.
-- `MetaAgent` – extracts simple metadata from the link.
-- `ExampleAgent` – a no-op agent that simply echoes the input.
-
-All other agents described in `AGENTS.md` are not yet part of the codebase.
-
-## Usage
-
-1. Run `npm run dev` and open `http://localhost:5173` in your browser.
-2. Enter the link along with an optional custom title and comma-separated tags,
-   then click **新增** to submit.
-3. Browse or search the shared links by category and tags.
-
-Enjoy exploring the collective knowledge of AI conversations!
+````markdown
 # 🌐 GPT-Link Hub
 
 **收集、分類、探索全世界公開 AI 對話連結的分享平台**
@@ -48,10 +16,10 @@ Enjoy exploring the collective knowledge of AI conversations!
 **GPT-Link Hub** 是一個開源平台，用來**聚合與分類使用者主動公開的 ChatGPT / Claude / Gemini 等 AI 聊天連結**。
 我們相信這些對話中蘊含著：
 
-* **解決問題的巧思**
-* **創作靈感的火花**
-* **靈性覺醒的痕跡**
-* **人類與 AI 共創的新型智慧流**
+* 💡 解決問題的巧思  
+* ✨ 創作靈感的火花  
+* 🌌 靈性覺醒的痕跡  
+* 🤖 人類與 AI 共創的新型智慧流  
 
 這些都值得被珍藏、分類、分享與再探索。
 
@@ -59,31 +27,29 @@ Enjoy exploring the collective knowledge of AI conversations!
 
 ## ✨ 主要功能特色
 
-* 🔍 **分類瀏覽**：透過主題分類（如哲學、創作、技術、心理、日常等）快速尋找感興趣的對話。
-* 🏷️ **自動標籤與摘要**：每段對話會由 AI 自動加上主題標籤與摘要。
-* 🔗 **安全連結驗證**：僅收錄使用者主動公開的分享連結。
-* 📄 **多平台支援**：目前支援 ChatGPT、Claude、Gemini、Perplexity 等平台。
-* 🧠 **智慧代理人支援**：後台有多個 AI Agents 處理分類、過濾、排序等工作（詳見 `AGENTS.md`）。
+* 🔍 **分類瀏覽**：透過主題分類（如哲學、創作、技術、心理、日常等）快速尋找感興趣的對話  
+* 🏷️ **自動標籤與摘要**：每段對話會由 AI 自動加上主題標籤與摘要（v1.1 開始）  
+* 🔗 **安全連結驗證**：僅收錄使用者主動公開的分享連結，並進行格式與平台審核  
+* 📄 **多平台支援**：目前支援 ChatGPT、Claude、Gemini、Perplexity 等平台  
+* 🧠 **智慧代理人架構**：採用多個 AI Agents 處理分類、過濾、摘要等任務（詳見下方）
 
 ---
 
 ## 🚀 快速開始
 
-1. **安裝相依套件**
+### 安裝與執行
 
 ```bash
-npm install
-```
+npm install       # 安裝相依套件
+npm run dev       # 啟動本機開發伺服器
+npm run build     # 建立正式版網站
+npm run preview   # 預覽 build 結果
+npm run docs      # 產生文件站點至 docs/.vitepress/dist
+````
 
-2. **啟動開發伺服器**
+### 開啟網站
 
-```bash
-npm run dev
-```
-
-3. **打開網站**
-
-預設網址為：
+預設開發網址為：
 
 ```
 http://localhost:5173
@@ -91,67 +57,100 @@ http://localhost:5173
 
 ---
 
-## 🏗️ 專案架構
+## 🧠 智慧代理人任務系統（Agent Pipeline）
+
+後台採用一組模組化 AI 代理人（Agents），讓每個連結都經過驗證、過濾、摘要與分類的流程。
+
+| Agent 名稱          | 功能說明                | 狀態     |
+| ----------------- | ------------------- | ------ |
+| `ValidatorAgent`  | 驗證是否為合法的公開分享連結      | ✅ 已實作  |
+| `MetaAgent`       | 擷取標題、平台、語言等基本資訊     | ✅ 已實作  |
+| `ConsentAgent`    | 確認使用者是否勾選公開同意欄位     | ✅ 已實作  |
+| `FilterAgent`     | 使用 GPT 偵測個資、暴力、違規內容 | 🧪 內測中 |
+| `ClassifierAgent` | 自動主題分類（哲學、技術、心理等）   | 🔄 開發中 |
+| `SummarizerAgent` | 擷取簡短摘要與亮點句子         | 🔄 開發中 |
+| `TaggerAgent`     | 自動生成多重主題標籤          | 🔜 計畫中 |
+| `RefinerAgent`    | 精煉過長內容、切段與加標題       | 🧪 內測中 |
+| `ExampleAgent`    | 範例代理人（保留測試用途）       | ✅ 存在中  |
+
+👉 詳細設計與使用方式請參見：[AGENTS.md](./AGENTS.md)
+
+---
+
+## 🏗️ 專案結構
 
 ```
 gpt-link-hub/
 │
 ├─ public/             # 靜態資源
 ├─ src/
-│   ├─ pages/          # 主頁面與動態頁
-│   ├─ components/     # 共用元件（如卡片、Tag、Modal）
-│   ├─ agents/         # AI 任務代理人模組（分類、摘要、驗證等）
+│   ├─ pages/          # 主頁面與動態頁面
+│   ├─ components/     # 共用元件（卡片、Tag、Modal 等）
+│   ├─ agents/         # AI 任務代理人模組
 │   ├─ lib/            # 公用函式與工具
 │   └─ styles/         # Tailwind 與自訂樣式
 │
-├─ tailwind.config.js  # Tailwind 設定檔
-├─ postcss.config.js   # PostCSS 設定檔
-├─ AGENTS.md           # AI 模組說明文件
-└─ README.md           # 專案說明
+├─ docs/               # 文件站點與模組設計說明
+├─ tailwind.config.js  # Tailwind 設定
+├─ postcss.config.js   # PostCSS 設定
+├─ AGENTS.md           # 智慧代理人說明文件
+└─ README.md           # 專案總說明（本檔）
 ```
 
 ---
 
-## 🛡️ 使用者與隱私權聲明
+## 📄 Documentation 文件
 
-* 本平台**僅收錄使用者手動貼上且確認願意公開**的聊天連結。
-* 所有內容皆標註來源與平台，不修改原始對話。
-* 若發現有誤收或需下架之內容，歡迎回報或聯絡我們。
+使用 VitePress 撰寫的文件站點位於 `docs/`，執行：
+
+```bash
+npm run docs
+```
+
+產生靜態頁面於 `docs/.vitepress/dist`，可部署到 GitHub Pages 或其他靜態網站服務。
 
 ---
 
-## 📌 路線圖（Roadmap）
+## 📌 路線圖 Roadmap
 
-| 階段   | 功能                      | 狀態     |
-| ---- | ----------------------- | ------ |
-| v1.0 | 支援貼上 GPT 對話連結 + 分類展示    | ✅ 完成   |
-| v1.1 | 自動標籤、摘要、風險掃描            | 🔄 開發中 |
-| v1.2 | 收藏功能 + 用戶瀏覽紀錄           | 🔜 計畫中 |
-| v2.0 | 使用者個人頁 + 私人分享清單         | 🚧 研究中 |
-| v2.5 | GPT 自動回顧功能：「你可能也會喜歡的對話」 | 🧪 構思中 |
+| 版本   | 功能說明                 | 狀態       |
+| ---- | -------------------- | -------- |
+| v1.0 | 貼上公開 GPT 對話連結 + 分類展示 | ✅ 已完成    |
+| v1.1 | 自動標籤、摘要、風險掃描         | 🧪 進行中   |
+| v1.2 | 收藏功能、用戶歷史紀錄          | 🔜 計畫中   |
+| v2.0 | 使用者個人頁面、私人連結分享管理     | 🚧 開發規劃中 |
+| v2.5 | GPT 自動推薦：「你可能也喜歡的對話」 | 💭 構思中   |
 
 ---
 
 ## 🙋‍♀️ 如何貢獻
 
 1. 點選右上角 `Fork`
-2. 建立一個新分支並命名（如：`feature/new-agent`）
-3. 提交你的變更並發送 Pull Request
-4. 我們會盡快回覆並整合 ❤️
+2. 建立新分支（例如：`feature/agent-summarizer`）
+3. 提交修改並發送 Pull Request
+4. 我們會盡快審核與整合 ❤️
 
 ---
 
-## 🤝 聯絡我 / 加入開發者社群
+## 🤝 聯絡我們 / 加入開發
 
-想一起建構這座「AI 對話圖書館」嗎？
-歡迎來信、私訊、發起合作，或直接在 Issues 中留言！
+歡迎加入這個開源實驗，打造全人類共享的 AI 對話知識圖譜！
+
+* 回報 bug 或提議請用 GitHub Issues
+* 想合作、整合、部署到社群網站或平台？歡迎私訊或開討論串
+* 加入我們的 Discord 社群（即將上線）
+
+---
+
+## 🛡️ 使用者與隱私聲明
+
+* 僅收錄使用者**手動貼上並同意公開的對話連結**
+* 所有內容皆標註來源與平台，不會修改原始對話內容
+* 若需移除任何內容，請提出 Issue 或私訊聯絡
 
 ---
 
 ## 📄 授權 License
 
-本專案採用 **MIT License**，歡迎自由使用、改作、分享。
-
----
-
-如需更進一步自動化功能（例如 auto pull ChatGPT 分享連結、RSS 訂閱 GPT 筆記等），我可以幫你設計 plugin 或 agent 延伸架構，歡迎接著說「幫我設計自動同步模組」我們就繼續打造 🚀
+本專案採用 MIT License，自由開源、自由擴充。
+你可以任意使用、改作、商用，只需保留原始授權條款即可。

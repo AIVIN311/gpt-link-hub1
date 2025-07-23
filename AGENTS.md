@@ -1,123 +1,145 @@
----
-
 # 🤖 AGENTS.md
 
-**GPT-Link Hub 代理人任務架構文件**
-版本：v1.0
-更新時間：2025-07-20
+**GPT-Link Hub 代理人任務架構文件**  
+版本：v1.1  
+更新時間：2025-07-23
 
 ---
 
 ## 🧭 概述
 
-本平台為聚合、分類、展示使用者主動公開的 AI 聊天連結而設計，為提升平台智能化與可擴展性，架構中引入多個「AI 任務代理人（Agents）」，用以模組化處理內容檢查、分類標籤、關鍵字萃取、推薦排序、風險控管等核心任務。
-
-以下列出各代理人名稱、職責與未來擴展計畫。
+本平台為聚合、分類、展示使用者主動公開的 AI 聊天連結而設計，為提升平台智能化與可擴展性，架構中引入多個「AI 任務代理人（Agents）」，用以模組化處理內容驗證、分類標籤、關鍵字萃取、推薦排序、風險控管等核心任務。
 
 ---
 
 ## 🧠 Agent 角色總覽
 
-| 代號                | 名稱        | 功能                                          | 狀態               |
-| ----------------- | --------- | ------------------------------------------- | ---------------- |
-| `ValidatorAgent`  | 驗證代理人     | 驗證使用者貼上的連結是否為**公開分享連結**，避免私密內容誤傳。           | ✅ 已實作            |
-| `MetaAgent`       | 元資料擷取代理人  | 自動從連結中萃取標題、描述、語言、平台（如 ChatGPT、Claude）等資訊。   | ✅ 基本版            |
-| `ClassifierAgent` | 主題分類代理人   | 將對話自動歸類至主題（例：科技、哲學、行銷、創作、情感等）               | 🔄 開發中           |
-| `SummarizerAgent` | 摘要代理人     | 擷取出對話精華摘要、亮點、結尾提問等，用於預覽展示。                  | 🔄 可接 GPT API 擴充 |
-| `FilterAgent`     | 風險過濾代理人   | 過濾不當內容（個資、仇恨言論、敏感詞、暴力描述等），並標註風險分數。          | ✅ 初版已接 GPT       |
-| `TaggerAgent`     | 標籤代理人     | 自動產出 3～7 個內容標籤（#AI寫作、#人生哲學、#GPT答題等）供搜尋與瀏覽使用 | 🔜 計劃中           |
-| `RankerAgent`     | 排序代理人     | 根據熱門程度、留言、收藏、時效等多指標計算推薦順序。                  | 🔜 尚未實作          |
-| `ConsentAgent`    | 同意驗證代理人   | 檢查是否勾選了「我確認此為可公開內容」等使用者聲明欄位。                | ✅ 基本已接 UI        |
-| `RefinerAgent`    | 精煉與格式化代理人 | 對過長的內容斷句、加標題、切段落，提升可讀性。                     | 🔄 內測中           |
-
-### 進度概覽
-
-目前程式碼僅包含 `ValidatorAgent` 與 `MetaAgent`。其他代理人尚未實作，只在文件中規劃。
+| 代號                | 名稱        | 功能                                          | 狀態與備註                             |
+|---------------------|-------------|-----------------------------------------------|----------------------------------------|
+| `ValidatorAgent`    | 驗證代理人     | 驗證貼上的連結是否為「公開可分享」格式                | ✅ 已實作，已對應 `validator.task.json` |
+| `MetaAgent`         | 元資料擷取代理人  | 萃取標題、平台、語言、日期等基本資料                   | ✅ 已實作，已對應 `metaExtractor.task.json` |
+| `ConsentAgent`      | 同意驗證代理人   | 檢查是否勾選「我確認此為可公開內容」等聲明              | ✅ 前端驗證完成，後端已對應表單欄位        |
+| `ClassifierAgent`   | 主題分類代理人   | 將對話歸類至主題（如 AI、哲學、創作、行銷等）           | 🔧 任務已規劃，Codex 執行中                |
+| `SummarizerAgent`   | 摘要代理人     | 擷取精華摘要、亮點片段、結尾提問，用於預覽與 SEO 展示      | 🔄 草稿開發中，GPT few-shot 接入預備        |
+| `TaggerAgent`       | 標籤代理人     | 自動產生 3～7 個內容標籤（#AI寫作、#GPT答題 等）       | 🟡 尚未開發，任務已規劃                     |
+| `FilterAgent`       | 風險過濾代理人   | 掃描不當內容並給予風險等級（個資、仇恨、暴力、色情等）      | ✅ 初版完成，GPT-4 API 接入                  |
+| `RankerAgent`       | 排序代理人     | 根據熱門程度、收藏、留言、時效等多指標排序             | 🟠 排序邏輯未建置，預計接 log 系統            |
+| `RefinerAgent`      | 精煉代理人     | 斷句、排版、加標題等格式優化，提升閱讀體驗               | 🔄 內測中，可配合 Summarizer 後處理         |
 
 ---
 
-## 🧩 使用流程
+## 🪄 Codex 任務對應表
 
-1. **使用者提交對話連結**
-2. `ValidatorAgent` 驗證連結格式與平台合法性
-3. `ConsentAgent` 確認使用者同意聲明
-4. `MetaAgent` 萃取基本資訊（標題、來源、時間）
-5. `ClassifierAgent` 分析主題
-6. `SummarizerAgent` 摘取摘要（摘要不公開內容）
-7. `FilterAgent` 掃描違規敏感片段
-8. `TaggerAgent` 自動產生 #標籤
-9. `RankerAgent` 計算推薦度
-10. `RefinerAgent` 整理展示格式與斷行
-
-→ 資料進入展示頁，供使用者瀏覽、點擊、分享。
-
----
-
-## 🌐 Agent 間互動圖（簡化）
-
-```
-[User Submit] 
-     ↓
-[Validator] ──┬──> [Consent]
-              ↓
-         [Meta] ──> [Classifier]
-                      ↓
-        [Summarizer] → [Tagger]
-                      ↓
-        [Filter] ─────┘
-              ↓
-        [Ranker + Refiner] 
-              ↓
-          [Final JSON]
-```
+| Agent             | 任務檔名                    | 任務類型          | 優先級 |
+|------------------|-----------------------------|-------------------|--------|
+| ValidatorAgent   | `validator.task.json`       | URL 驗證           | 🔥 高   |
+| MetaAgent        | `metaExtractor.task.json`   | 頁面解析           | ✅ 已完成 |
+| ConsentAgent     | 無（由 UI 控制表單）           | 前端驗證           | ✅ 已完成 |
+| ClassifierAgent  | `classifier.task.json`      | 主題分類           | 🟡 中   |
+| SummarizerAgent  | `summarizer.task.json`      | GPT 摘要           | 🟡 中   |
+| TaggerAgent      | `tagger.task.json`          | 標籤生成           | 🟠 低   |
+| FilterAgent      | `filter.task.json`          | 敏感詞 + GPT 分析    | ✅ 已完成 |
+| RankerAgent      | `ranker.task.json`          | 熱度排序計算       | 🔵 延後開發 |
+| RefinerAgent     | `refiner.task.json`         | 格式調整與轉換       | 🟢 中   |
 
 ---
 
 ## 🛠️ 技術說明
 
-* **語意分析模型**：採用 GPT-4o / Claude 3 Opus API 呼叫，針對分類與摘要進行 few-shot prompting。
-* **後端設計**：使用 Node.js + Express 或 Next.js Server Actions 控制 Agent Pipeline。
-* **資料格式**：每個代理人對應一個獨立模組與 JSON 輸出，標準結構如下：
+- **前端框架**：Vite + React + TailwindCSS  
+- **後端架構**：Node.js + Express 或 Next.js Edge Functions  
+- **API 路由格式**：`POST /api/agent/{agentName}`  
+- **AI 模型介接**：GPT-4o / Claude 3 Opus，支援 few-shot 提示設計  
+- **資料格式標準**（各 Agent 輸出）：
 
 ```json
 {
-  "agent": "ClassifierAgent",
+  "agent": "SummarizerAgent",
   "input": "https://chat.openai.com/share/xxx",
   "output": {
-    "topic": "未來科技",
-    "subtopics": ["AI倫理", "GPT應用"]
+    "summary": "這段對話討論了 AI 在教育上的應用，強調了人機協作的重要性。",
+    "highlight": ["AI 教學", "共學", "教育轉型"],
+    "question": "AI 是否可能取代老師的角色？"
   }
 }
-```
+🧬 Codex 執行原則
+每個 Agent 需對應一個獨立任務 JSON，包含 input, expected_output, fallback。
 
----
+Codex 可依據此檔自動建立 dev pipeline。
 
-## 🚀 未來規劃
+Agent 任務允許 Pre → Core → Post 多階段處理。
 
-| 模組                | 擴展方向                                   |
-| ----------------- | -------------------------------------- |
-| `ClassifierAgent` | 引入自訓練語意分類模型（可支援中文）                     |
-| `TaggerAgent`     | 增加社群標籤共創機制（tag crowdsourcing）          |
-| `RankerAgent`     | 融合 PageView、使用者反應、時間熱度等綜合排序            |
-| 所有 Agent          | 遷移至 Worker Queue 並進行 async pipeline 處理 |
+可串接 worker queue 或 async pipeline 處理大量連結。
 
----
+🧪 API 測試方式
+測試 MetaAgent
+bash
+複製
+編輯
+curl -X POST http://localhost:3000/api/agent/meta \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://chat.openai.com/share/xyz123"}'
+測試 ClassifierAgent（尚需實作）
+bash
+複製
+編輯
+curl -X POST http://localhost:3000/api/agent/classifier \
+  -H "Content-Type: application/json" \
+  -d '{"content": "這是一段關於 AI 教學與語言模型的對話..."}'
+📊 使用流程（全平台處理鏈）
+使用者貼上分享連結
 
-## 💬 註記
+ValidatorAgent 檢查連結有效性
 
-> 本平台之 Agent 系統並非為了取代人類判斷，而是協助減輕重複性工作、提升分類與展示效率。我們尊重每一段分享的背後心意，亦設有舉報與下架機制，保護創作者與使用者的智慧財產與尊嚴。
+ConsentAgent 確認使用者授權公開
 
----
+MetaAgent 抓取標題、平台、日期等元資訊
 
-如果你想我幫你：
+ClassifierAgent 分析主題與分類
 
-* 把這些拆成 `.ts` 模組草稿
-* 加入 API 串接示意
-* 寫成完整 docs 文件、Readme 子頁
+SummarizerAgent 提煉摘要與亮點片段
 
-隨時說「幫我生成 agent 程式架構」，我立刻安排 🛠️
+FilterAgent 過濾不當詞彙與標記違規
 
----
+TaggerAgent 自動產出標籤（hash tag）
+
+RankerAgent 計算展示推薦排序
+
+RefinerAgent 最終整理格式與排版
+
+→ 最終生成 displayData.json → 對應 UI 卡片呈現
+
+🌐 Agent 任務流程圖（更新版）
+css
+複製
+編輯
+[User Submit] 
+     ↓
+[Validator] ──┬──> [Consent]
+              ↓
+         [Meta] ──> [Classifier]
+                        ↓
+       [Summarizer] → [Tagger]
+                        ↓
+         [Filter] ──────┘
+              ↓
+        [Ranker + Refiner] 
+              ↓
+          [Final JSON]
+🚀 未來規劃
+模組	發展方向
+ClassifierAgent	自訓練語意分類模型（中文 BERT / Mixtral）
+TaggerAgent	社群標籤共創（Tag Crowdsourcing）
+RankerAgent	接入 GA / Firestore 回饋紀錄進行熱度排序
+所有 Agent	遷移至 AgentWorkerQueue 進行 async pipeline
+
+💬 註記
+本平台之 Agent 系統旨在協助使用者分類、摘要與篩選公開聊天資料，非用於侵犯個人隱私或評價創作者本身。每段對話皆可舉報或隱藏，尊重每位分享者的智慧與選擇權。
+
+📜 更新紀錄
+v1.0：初版撰寫，定義各 Agent 功能與流程
+
+v1.1：加入 Codex 任務索引、API 測試、模組對應檔案、流程更新圖與前後端整合說明
 
 ## 🛠️ 開發者指引
 
