@@ -4,8 +4,8 @@ import Header from '../components/Header.jsx'
 
 function Home() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <div className="max-w-screen-sm w-full space-y-6 text-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 overflow-x-hidden">
+      <div className="container mx-auto px-4 max-w-screen-sm w-full space-y-6 text-center">
         <Header />
         <p className="text-gray-700">蒐集與分類各種 ChatGPT 對話連結的平台</p>
         <Link

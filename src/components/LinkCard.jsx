@@ -4,15 +4,6 @@ function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
 
-  function handleKeyDown(e) {
-    if (!onSelect) return
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      onSelect(e)
-    }
-  }
-
-  const baseClass = 'bg-white p-4 rounded-lg shadow space-y-2'
 
   return (
     <div
@@ -30,7 +21,7 @@ function LinkCard({ title, description, tags = [], url, onSelect, onDelete }) {
           🗑️
         </button>
       )}
-      <h2 className="text-xl font-semibold">{displayTitle}</h2>
+      <h2 className="text-xl font-semibold text-black">{displayTitle}</h2>
       <p className="text-gray-700">{description}</p>
       <div className="flex flex-wrap gap-2">
         {displayTags.map((tag) => (

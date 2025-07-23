@@ -15,7 +15,7 @@ function PreviewCard({ title, description, tags = [], url }) {
     <div
       className={`bg-white p-4 rounded-lg shadow space-y-2 transition-opacity duration-500 ${visible ? 'opacity-100' : 'opacity-0'}`}
     >
-      <h2 className="text-xl font-semibold">{displayTitle}</h2>
+      <h2 className="text-xl font-semibold text-black">{displayTitle}</h2>
       <p className="text-gray-700">{description}</p>
       <div className="flex flex-wrap gap-2">
         {displayTags.map((tag) => (
