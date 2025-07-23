@@ -23,6 +23,7 @@ Implemented agents so far:
 
 - `ValidatorAgent` – checks if a link is a public share URL.
 - `MetaAgent` – extracts simple metadata from the link.
+- `ExampleAgent` – a no-op agent that simply echoes the input.
 
 All other agents described in `AGENTS.md` are not yet part of the codebase.
 

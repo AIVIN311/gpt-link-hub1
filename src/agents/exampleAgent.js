@@ -1,5 +1,6 @@
 /**
- * Basic agent module structure
+ * Basic no-op agent used as a template for new agents.
+ * It simply echoes whatever input it receives.
  */
 
 export default class ExampleAgent {
@@ -8,7 +9,6 @@ export default class ExampleAgent {
   }
 
   run(input) {
-    // TODO: implement agent logic
-    return { input, output: null }
+    return { input, output: input }
   }
 }
