@@ -13,6 +13,19 @@ export default function UploadLinkBox({ onAdd }) {
       .map((t) => t.trim())
       .filter((t) => t);
 
+    const keywordMap = {
+      GPT: 'ChatGPT',
+      AI: 'AI',
+      YouTube: '影音',
+    };
+
+    const text = `${title} ${link}`.toLowerCase();
+    Object.entries(keywordMap).forEach(([keyword, suggested]) => {
+      if (text.includes(keyword.toLowerCase()) && !tagList.includes(suggested)) {
+        tagList.push(suggested);
+      }
+    });
+
     onAdd({
       url: link.trim(),
       title: title.trim(),
@@ -28,19 +41,19 @@ export default function UploadLinkBox({ onAdd }) {
   return (
     <div className="bg-white p-4 rounded shadow space-y-3 w-full max-w-md">
       <input
-        className="w-full border rounded px-3 py-2"
+        className="w-full bg-white border border-gray-300 rounded-md px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 hover:border-blue-500"
         placeholder="貼上公開分享連結"
         value={link}
         onChange={(e) => setLink(e.target.value)}
       />
       <input
-        className="w-full border rounded px-3 py-2"
+        className="w-full border rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="自訂標題（可留空）"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
       <input
-        className="w-full border rounded px-3 py-2"
+        className="w-full border rounded px-3 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="標籤（以逗號分隔，例如 ChatGPT, 分類A）"
         value={tags}
         onChange={(e) => setTags(e.target.value)}
