@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import cleanText from '../lib/cleanText.js'
 
 function PreviewCard({ title, description, summary, tags = [], url }) {
   const [visible, setVisible] = useState(false)
