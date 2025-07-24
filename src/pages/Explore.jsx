@@ -7,6 +7,21 @@ import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
 
+const SAMPLE_LINKS = [
+  {
+    title: '示範連結 1',
+    description: '範例對話描述',
+    tags: ['ChatGPT', '示範'],
+    url: 'https://chat.openai.com/share/example-1',
+  },
+  {
+    title: '示範連結 2',
+    description: '另外一個對話範例',
+    tags: ['AI', '分享'],
+    url: 'https://chat.openai.com/share/example-2',
+  },
+]
+
 // 產生唯一項目 ID
 function generateItemId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
@@ -49,56 +64,52 @@ function Explore() {
     setUserId(uid)
   }, [])
 
-  // 🚀 當 userId 有值後，讀取 localStorage 裡的連結並補上 summary
+  // 🚀 當 userId 有值後，讀取 localStorage，若無資料則載入範例連結
   useEffect(() => {
     if (!userId) return
+
+    const processItems = async (items, save = false) => {
+      let changed = false
+      const normalized = await Promise.all(
+        items.map(async (item) => {
+          let updated = normalizeItem(item, userId)
+
+          if (!updated.summary) {
+            try {
+              const result = await summarizer.run(updated.url)
+              updated.summary = result.summary
+              changed = true
+            } catch (err) {
+              console.warn('Summarizer failed for stored link', err)
+              updated.summary = '（暫無摘要）'
+            }
+          }
+
+          return updated
+        })
+      )
+
+      if (changed || save) {
+        localStorage.setItem('links', JSON.stringify(normalized))
+      }
+      setLinks(normalized)
+    }
 
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        let changed = false
-
-        const fillSummaries = async () => {
-          const normalized = await Promise.all(
-            parsed.map(async (item) => {
-              let updated = { ...item }
-
-              if (!updated.id) {
-                updated.id = generateItemId()
-                changed = true
-              }
-
-              if (!updated.createdBy) {
-                updated.createdBy = userId
-                changed = true
-              }
-
-              if (!updated.summary) {
-                try {
-                  const result = await summarizer.run(updated.url)
-                  updated.summary = result.summary
-                  changed = true
-                } catch (err) {
-                  console.warn('Summarizer failed for stored link', err)
-                  updated.summary = '（暫無摘要）'
-                }
-              }
-
-              return updated
-            })
-          )
-
-          if (changed) {
-            localStorage.setItem('links', JSON.stringify(normalized))
-          }
-          setLinks(normalized)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          processItems(parsed)
+        } else {
+          processItems(SAMPLE_LINKS, true)
         }
-
-        fillSummaries()
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
+        processItems(SAMPLE_LINKS, true)
       }
+    } else {
+      processItems(SAMPLE_LINKS, true)
     }
   }, [userId, summarizer])
 
