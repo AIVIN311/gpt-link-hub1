@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
-import PreviewCard from '../components/PreviewCard.jsx'
 
 const USER_ID_KEY = 'userUuid'
 
