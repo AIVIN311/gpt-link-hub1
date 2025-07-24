@@ -36,7 +36,6 @@ function Explore() {
   ])
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
-  const summarizer = useMemo(() => new SummarizerAgent(), [])
 
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
@@ -59,7 +58,12 @@ function Explore() {
                 updated.createdBy = userId
               }
               if (!updated.summary) {
-                const { summary } = await summarizer.run(updated.url)
+                let summary = ''
+                try {
+                  ;({ summary } = await summarizer.run(updated.url))
+                } catch (err) {
+                  console.warn('Summarizer failed for stored link', err)
+                }
                 updated.summary = summary
                 changed = true
               }
@@ -81,7 +85,12 @@ function Explore() {
 
   async function handleAdd(data) {
     const base = normalizeItem(data, userId)
-    const { summary } = await summarizer.run(base.url)
+    let summary = ''
+    try {
+      ;({ summary } = await summarizer.run(base.url))
+    } catch (err) {
+      console.warn('Summarizer failed when adding link', err)
+    }
     const item = { ...base, summary }
     setLinks((prev) => {
       const next = [...prev, item]
