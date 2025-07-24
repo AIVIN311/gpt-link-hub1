@@ -13,7 +13,9 @@ export default class SummarizerAgent {
       try {
         const res = await fetch(link)
         const html = await res.text()
-        text = html.replace(/<[^>]*>/g, ' ')
+        const noScripts = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+        const noStyles = noScripts.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+        text = noStyles.replace(/<[^>]*>/g, ' ')
       } catch {
         // ignore fetch errors
       }
