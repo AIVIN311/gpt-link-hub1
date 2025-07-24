@@ -36,7 +36,6 @@ function Explore() {
   ])
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
-  const summarizer = useMemo(() => new SummarizerAgent(), [])
 
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
