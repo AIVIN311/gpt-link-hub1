@@ -30,6 +30,7 @@ function LinkCard({
       {onDelete && (
         <button
           className="absolute top-2 right-2 text-red-500"
+          aria-label="Delete link"
           onClick={(e) => {
             e.stopPropagation()
             onDelete(id)
