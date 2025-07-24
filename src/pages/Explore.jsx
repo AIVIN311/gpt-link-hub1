@@ -6,6 +6,13 @@ import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
 
+function generateUserId() {
+  if (crypto?.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
 function normalizeItem(data, userId) {
   return {
     url: data.url || data.link,
@@ -40,7 +47,7 @@ function Explore() {
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
-      uid = crypto.randomUUID()
+      uid = generateUserId()
       localStorage.setItem(USER_ID_KEY, uid)
     }
     setUserId(uid)
