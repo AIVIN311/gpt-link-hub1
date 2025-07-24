@@ -78,9 +78,9 @@ function LinkCard({
       </a>
       {summary && (
         <div
-          className={`pointer-events-none absolute inset-0 ${selected ? 'flex' : 'hidden'} items-center justify-center bg-black bg-opacity-60 text-white text-xs p-4 rounded-lg`}
+          className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 text-white text-xs p-4 rounded-lg transition-opacity duration-500 ${selected ? 'opacity-100' : 'opacity-0'}`}
         >
-          <p>{summary}</p>
+          {selected && <p>{summary}</p>}
         </div>
       )}
     </div>

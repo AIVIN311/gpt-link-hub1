@@ -132,7 +132,7 @@ function Explore() {
       <LinkCard
         key={link.url}
         {...link}
-        selected={selectedLink?.url === link.url}
+        selected={selectedLink && selectedLink.url === link.url}
         onSelect={() => setSelectedLink(link)}
         onDelete={allowDelete ? handleDelete : undefined}
       />
@@ -157,7 +157,7 @@ function Explore() {
           <div className="w-full md:w-1/2 mt-6 md:mt-0">
             {selectedLink ? (
               <LinkCard {...selectedLink} selected />
-            ) : (
+              ) : (
               <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
                 請選擇一個連結以預覽
               </div>
