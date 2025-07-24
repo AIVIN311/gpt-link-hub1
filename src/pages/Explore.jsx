@@ -7,6 +7,12 @@ import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
 
+// 產生唯一項目 ID
+function generateItemId() {
+  if (crypto?.randomUUID) return crypto.randomUUID()
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
 // 產生使用者 ID（若瀏覽器支援則用 UUID）
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
@@ -16,6 +22,7 @@ function generateUserId() {
 // 正規化每一筆資料結構
 function normalizeItem(data, userId) {
   return {
+    id: data.id || generateItemId(),
     url: data.url || data.link,
     title: data.title || '未命名',
     tags: Array.isArray(data.tags) ? data.tags : [],
@@ -56,6 +63,11 @@ function Explore() {
           const normalized = await Promise.all(
             parsed.map(async (item) => {
               let updated = { ...item }
+
+              if (!updated.id) {
+                updated.id = generateItemId()
+                changed = true
+              }
 
               if (!updated.createdBy) {
                 updated.createdBy = userId
@@ -115,12 +127,12 @@ function Explore() {
   // ❌ 刪除連結
   function handleDelete(id) {
     setLinks((prev) => {
-      const next = prev.filter((item) => item.url !== id)
+      const next = prev.filter((item) => item.id !== id)
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
 
-    if (selectedLink && selectedLink.url === id) {
+    if (selectedLink && selectedLink.id === id) {
       setSelectedLink(null)
     }
   }
@@ -130,9 +142,9 @@ function Explore() {
     const allowDelete = link.createdBy === userId
     return (
       <LinkCard
-        key={link.url}
+        key={link.id}
         {...link}
-        selected={selectedLink && selectedLink.url === link.url}
+        selected={selectedLink && selectedLink.id === link.id}
         onSelect={() => setSelectedLink(link)}
         onDelete={allowDelete ? handleDelete : undefined}
       />

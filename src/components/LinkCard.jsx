@@ -1,6 +1,7 @@
 import React from 'react'
 
 function LinkCard({
+  id,
   title,
   description,
   summary,
@@ -31,7 +32,7 @@ function LinkCard({
           className="absolute top-2 right-2 text-red-500"
           onClick={(e) => {
             e.stopPropagation()
-            onDelete(url)
+            onDelete(id)
           }}
         >
           🗑️
