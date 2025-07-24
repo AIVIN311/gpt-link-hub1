@@ -1,6 +1,15 @@
 import React from 'react'
 
-function LinkCard({ title, description, summary, tags = [], url, onSelect, onDelete }) {
+function LinkCard({
+  title,
+  description,
+  summary,
+  tags = [],
+  url,
+  onSelect,
+  onDelete,
+  selected = false,
+}) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
 
@@ -41,8 +50,10 @@ function LinkCard({ title, description, summary, tags = [], url, onSelect, onDel
         前往連結
       </a>
       {summary && (
-        <div className="pointer-events-none absolute inset-0 hidden group-hover:flex items-center justify-center bg-black bg-opacity-60 text-white text-xs p-4 rounded-lg">
-          <p>{summary}</p>
+        <div
+          className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 text-white text-xs p-4 rounded-lg transition-opacity duration-500 ${selected ? 'opacity-100' : 'opacity-0'}`}
+        >
+          {selected && <p>{summary}</p>}
         </div>
       )}
     </div>
