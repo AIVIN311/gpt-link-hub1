@@ -34,17 +34,15 @@ function Explore() {
     },
   ])
   const [selectedLink, setSelectedLink] = useState(null)
-  const summarizer = useMemo(() => new SummarizerAgent(), [])
-  const [userId] = useState(() => {
+  const [userId, setUserId] = useState('')
+
+  useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
       uid = crypto.randomUUID()
       localStorage.setItem(USER_ID_KEY, uid)
     }
-    return uid
-  })
-
-  useEffect(() => {
+    setUserId(uid)
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
@@ -84,7 +82,7 @@ function Explore() {
     const { summary } = await summarizer.run(base.url)
     const item = { ...base, summary }
     setLinks((prev) => {
-      const next = [...prev, item]
+      const next = [...prev, normalizeItem(data, userId)]
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
