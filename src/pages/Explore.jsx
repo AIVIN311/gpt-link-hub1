@@ -73,12 +73,13 @@ function Explore() {
   }
 
   function renderListItem(link) {
+    const allowDelete = link.createdBy === userId
     return (
       <LinkCard
         key={link.url}
         {...link}
         onSelect={() => setSelectedLink(link)}
-        onDelete={handleDelete}
+        onDelete={allowDelete ? handleDelete : undefined}
       />
     )
   }
