@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
-import PreviewCard from '../components/PreviewCard.jsx'
+import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
 
@@ -46,14 +46,41 @@ function Explore() {
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
-        setLinks(JSON.parse(stored))
+        const parsed = JSON.parse(stored)
+        let changed = false
+        const fillSummaries = async () => {
+          const normalized = await Promise.all(
+            parsed.map(async (item) => {
+              let updated = { ...item }
+              if (!updated.createdBy) {
+                changed = true
+                updated.createdBy = userId
+              }
+              if (!updated.summary) {
+                const { summary } = await summarizer.run(updated.url)
+                updated.summary = summary
+                changed = true
+              }
+              return updated
+            })
+          )
+          if (changed) {
+            localStorage.setItem('links', JSON.stringify(normalized))
+          }
+          setLinks(normalized)
+        }
+
+        fillSummaries()
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
       }
     }
-  }, [])
+  }, [userId, summarizer])
 
-  function handleAdd(data) {
+  async function handleAdd(data) {
+    const base = normalizeItem(data, userId)
+    const { summary } = await summarizer.run(base.url)
+    const item = { ...base, summary }
     setLinks((prev) => {
       const next = [...prev, normalizeItem(data, userId)]
       localStorage.setItem('links', JSON.stringify(next))
