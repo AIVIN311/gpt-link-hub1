@@ -33,15 +33,16 @@ function Explore() {
     },
   ])
   const [selectedLink, setSelectedLink] = useState(null)
-  const [userId, setUserId] = useState('')
-
-  useEffect(() => {
+  const [userId] = useState(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
       uid = crypto.randomUUID()
       localStorage.setItem(USER_ID_KEY, uid)
     }
-    setUserId(uid)
+    return uid
+  })
+
+  useEffect(() => {
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
@@ -50,7 +51,7 @@ function Explore() {
         const normalized = parsed.map((item) => {
           if (!item.createdBy) {
             changed = true
-            return { ...item, createdBy: uid }
+            return { ...item, createdBy: userId }
           }
           return item
         })
@@ -62,7 +63,7 @@ function Explore() {
         console.error('Failed to parse links from localStorage', e)
       }
     }
-  }, [])
+  }, [userId])
 
   function handleAdd(data) {
     setLinks((prev) => {
