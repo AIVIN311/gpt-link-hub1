@@ -4,6 +4,13 @@ import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 
+function generateUserId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return Math.random().toString(36).slice(2)
+}
+
 const USER_ID_KEY = 'userUuid'
 
 function normalizeItem(data, userId) {
@@ -35,11 +42,12 @@ function Explore() {
   ])
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
+  const summarizer = useMemo(() => new SummarizerAgent(), [])
 
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
-      uid = crypto.randomUUID()
+      uid = generateUserId()
       localStorage.setItem(USER_ID_KEY, uid)
     }
     setUserId(uid)
@@ -75,14 +83,14 @@ function Explore() {
         console.error('Failed to parse links from localStorage', e)
       }
     }
-  }, [userId, summarizer])
+  }, [userId])
 
   async function handleAdd(data) {
     const base = normalizeItem(data, userId)
     const { summary } = await summarizer.run(base.url)
     const item = { ...base, summary }
     setLinks((prev) => {
-      const next = [...prev, normalizeItem(data, userId)]
+      const next = [...prev, item]
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
