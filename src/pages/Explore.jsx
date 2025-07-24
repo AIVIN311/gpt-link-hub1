@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
+import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
 
@@ -33,6 +34,7 @@ function Explore() {
     },
   ])
   const [selectedLink, setSelectedLink] = useState(null)
+  const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [userId] = useState(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
@@ -48,26 +50,41 @@ function Explore() {
       try {
         const parsed = JSON.parse(stored)
         let changed = false
-        const normalized = parsed.map((item) => {
-          if (!item.createdBy) {
-            changed = true
-            return { ...item, createdBy: userId }
+        const fillSummaries = async () => {
+          const normalized = await Promise.all(
+            parsed.map(async (item) => {
+              let updated = { ...item }
+              if (!updated.createdBy) {
+                changed = true
+                updated.createdBy = userId
+              }
+              if (!updated.summary) {
+                const { summary } = await summarizer.run(updated.url)
+                updated.summary = summary
+                changed = true
+              }
+              return updated
+            })
+          )
+          if (changed) {
+            localStorage.setItem('links', JSON.stringify(normalized))
           }
-          return item
-        })
-        if (changed) {
-          localStorage.setItem('links', JSON.stringify(normalized))
+          setLinks(normalized)
         }
-        setLinks(normalized)
+
+        fillSummaries()
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
       }
     }
-  }, [userId])
+  }, [userId, summarizer])
 
-  function handleAdd(data) {
+  async function handleAdd(data) {
+    const base = normalizeItem(data, userId)
+    const { summary } = await summarizer.run(base.url)
+    const item = { ...base, summary }
     setLinks((prev) => {
-      const next = [...prev, normalizeItem(data, userId)]
+      const next = [...prev, item]
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
