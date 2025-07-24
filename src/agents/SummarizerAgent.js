@@ -1,24 +1,29 @@
+/**
+ * Generates a short summary from a link or text content
+ */
 export default class SummarizerAgent {
   constructor(options = {}) {
     this.options = options
   }
 
-  async run(link) {
-    try {
-      const res = await fetch(link)
-      const html = await res.text()
-      const og = html.match(/<meta[^>]*property=['"]og:description['"][^>]*content=['"]([^'"]+)['"][^>]*>/i)
-      const desc = html.match(/<meta[^>]*name=['"]description['"][^>]*content=['"]([^'"]+)['"][^>]*>/i)
-      let summary = ''
-      if (og) summary = og[1]
-      else if (desc) summary = desc[1]
-      if (!summary) {
-        const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-        summary = text.slice(0, 160)
+  async run({ link, content } = {}) {
+    let text = content || ''
+
+    if (link && !text) {
+      try {
+        const res = await fetch(link)
+        const html = await res.text()
+        text = html.replace(/<[^>]*>/g, ' ')
+      } catch {
+        // ignore fetch errors
       }
-      return { summary }
-    } catch {
-      return { summary: '' }
     }
+
+    text = (text || '').replace(/\s+/g, ' ').trim()
+    if (!text) return { summary: '' }
+
+    const sentences = text.match(/[^.!?]+[.!?]/g) || [text]
+    const summary = sentences.slice(0, 3).join(' ').trim()
+    return { summary }
   }
 }
