@@ -46,7 +46,19 @@ function Explore() {
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
-        setLinks(JSON.parse(stored))
+        const parsed = JSON.parse(stored)
+        let changed = false
+        const normalized = parsed.map((item) => {
+          if (!item.createdBy) {
+            changed = true
+            return { ...item, createdBy: uid }
+          }
+          return item
+        })
+        if (changed) {
+          localStorage.setItem('links', JSON.stringify(normalized))
+        }
+        setLinks(normalized)
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
       }
