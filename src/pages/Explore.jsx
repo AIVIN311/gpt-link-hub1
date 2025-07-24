@@ -19,6 +19,7 @@ function normalizeItem(data, userId) {
 }
 
 function Explore() {
+  const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([
     {
       title: '示範連結 1',
@@ -75,14 +76,14 @@ function Explore() {
         console.error('Failed to parse links from localStorage', e)
       }
     }
-  }, [userId])
+  }, [userId, summarizer])
 
   async function handleAdd(data) {
     const base = normalizeItem(data, userId)
     const { summary } = await summarizer.run(base.url)
     const item = { ...base, summary }
     setLinks((prev) => {
-      const next = [...prev, normalizeItem(data, userId)]
+      const next = [...prev, item]
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
