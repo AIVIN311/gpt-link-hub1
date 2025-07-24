@@ -4,7 +4,9 @@ import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 
-function normalizeItem(data) {
+const USER_ID_KEY = 'userUuid'
+
+function normalizeItem(data, userId) {
   return {
     url: data.url || data.link,
     title: data.title || '未命名',
@@ -12,6 +14,7 @@ function normalizeItem(data) {
     platform: data.platform || 'Unknown',
     language: data.language || 'unknown',
     description: data.description || '',
+    createdBy: data.createdBy || userId,
   }
 }
 
@@ -31,8 +34,15 @@ function Explore() {
     },
   ])
   const [selectedLink, setSelectedLink] = useState(null)
+  const [userId, setUserId] = useState('')
 
   useEffect(() => {
+    let uid = localStorage.getItem(USER_ID_KEY)
+    if (!uid) {
+      uid = crypto.randomUUID()
+      localStorage.setItem(USER_ID_KEY, uid)
+    }
+    setUserId(uid)
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
@@ -45,7 +55,7 @@ function Explore() {
 
   function handleAdd(data) {
     setLinks((prev) => {
-      const next = [...prev, normalizeItem(data)]
+      const next = [...prev, normalizeItem(data, userId)]
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
