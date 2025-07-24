@@ -19,6 +19,7 @@ function normalizeItem(data, userId) {
 }
 
 function Explore() {
+  const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([
     {
       title: '示範連結 1',
