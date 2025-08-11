@@ -1,0 +1,14 @@
+{
+  "agent": "TaggerAgent",
+  "description": "Generate 3-7 descriptive hashtags from provided content",
+  "input": {
+    "content": "Full text content to analyze for tags"
+  },
+  "expected_output": {
+    "tags": ["#example", "#example2"]
+  },
+  "fallback": {
+    "tags": ["#untagged"],
+    "reason": "tag extraction failed"
+  }
+}

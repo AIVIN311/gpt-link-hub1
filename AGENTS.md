@@ -21,7 +21,7 @@
 | `ConsentAgent`      | 同意驗證代理人   | 檢查是否勾選「我確認此為可公開內容」等聲明              | ✅ 前端驗證完成，後端已對應表單欄位        |
 | `ClassifierAgent`   | 主題分類代理人   | 將對話歸類至主題（如 AI、哲學、創作、行銷等）           | 🔧 任務已規劃，Codex 執行中                |
 | `SummarizerAgent`   | 摘要代理人     | 擷取精華摘要、亮點片段、結尾提問，用於預覽與 SEO 展示      | 🔄 草稿開發中，GPT few-shot 接入預備        |
-| `TaggerAgent`       | 標籤代理人     | 自動產生 3～7 個內容標籤（#AI寫作、#GPT答題 等）       | 🟡 尚未開發，任務已規劃                     |
+| `TaggerAgent`       | 標籤代理人     | 自動產生 3～7 個內容標籤（#AI寫作、#GPT答題 等）       | 🟠 任務檔 `tagger.task.json`（根目錄）已新增，POST /api/agent/tagger 傳入 content 取得 tags |
 | `FilterAgent`       | 風險過濾代理人   | 掃描不當內容並給予風險等級（個資、仇恨、暴力、色情等）      | ✅ 初版完成，GPT-4 API 接入                  |
 | `RankerAgent`       | 排序代理人     | 根據熱門程度、收藏、留言、時效等多指標排序             | 🟠 排序邏輯未建置，預計接 log 系統            |
 | `RefinerAgent`      | 精煉代理人     | 斷句、排版、加標題等格式優化，提升閱讀體驗               | 🔄 內測中，可配合 Summarizer 後處理         |
