@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
@@ -7,6 +7,7 @@ import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 import StatsPanel from '../components/StatsPanel.jsx'
 import NavTabs from '../components/NavTabs.jsx'
+import Sortable from 'sortablejs'
 
 const USER_ID_KEY = 'userUuid'
 
@@ -40,6 +41,7 @@ function MyLinks() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const listRef = useRef(null)
 
   const availableTags = useMemo(
     () => [...new Set(links.flatMap(l => l.tags))],
@@ -54,6 +56,23 @@ function MyLinks() {
       localStorage.setItem(USER_ID_KEY, uid)
     }
     setUserId(uid)
+  }, [])
+
+  useEffect(() => {
+    if (!listRef.current) return
+    const sortable = new Sortable(listRef.current, {
+      animation: 150,
+      onEnd: ({ oldIndex, newIndex }) => {
+        setLinks(prev => {
+          const updated = [...prev]
+          const [moved] = updated.splice(oldIndex, 1)
+          updated.splice(newIndex, 0, moved)
+          localStorage.setItem('links', JSON.stringify(updated))
+          return updated
+        })
+      }
+    })
+    return () => sortable.destroy()
   }, [])
 
   // 載入/規範化/摘要化資料，並只保留自己建立的連結
@@ -186,7 +205,7 @@ function MyLinks() {
               onChange={setSelectedTags}
             />
 
-            <div className="space-y-6">
+            <div className="space-y-6" ref={listRef}>
               {filteredLinks.length > 0 ? (
                 filteredLinks.map(link => renderListItem(link))
               ) : (
