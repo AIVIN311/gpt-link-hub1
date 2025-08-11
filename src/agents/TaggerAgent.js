@@ -48,7 +48,7 @@ export default class TaggerAgent {
         const noScripts = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
         const noStyles  = noScripts.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
         text = noStyles.replace(/<[^>]*>/g, ' ')
-      } catch (e) {
+      } catch {
         // 忽略 fetch 失敗；維持空字串
       }
     }
