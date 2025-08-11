@@ -40,11 +40,13 @@ function MyLinks() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+
   const availableTags = useMemo(
-    () => [...new Set(links.flatMap((l) => l.tags))],
+    () => [...new Set(links.flatMap(l => l.tags))],
     [links]
   )
 
+  // 初始化使用者 ID
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
@@ -54,6 +56,7 @@ function MyLinks() {
     setUserId(uid)
   }, [])
 
+  // 載入/規範化/摘要化資料，並只保留自己建立的連結
   useEffect(() => {
     if (!userId) return
 
@@ -74,12 +77,11 @@ function MyLinks() {
               updated.summary = '（暫無摘要）'
             }
           }
-
           return updated
         })
       )
 
-      const mine = normalized.filter((l) => l.createdBy === userId)
+      const mine = normalized.filter(l => l.createdBy === userId)
       if (changed || save) {
         localStorage.setItem('links', JSON.stringify(normalized))
       }
@@ -104,10 +106,10 @@ function MyLinks() {
     }
   }, [userId, summarizer])
 
+  // 新增連結
   async function handleAdd(data) {
     const base = normalizeItem(data, userId)
     let summary = ''
-
     try {
       const result = await summarizer.run(base.url)
       summary = result.summary
@@ -115,10 +117,9 @@ function MyLinks() {
       console.warn('Summarizer failed when adding link', err)
       summary = '（暫無摘要）'
     }
-
     const item = { ...base, summary, createdAt: base.createdAt }
 
-    setLinks((prev) => {
+    setLinks(prev => {
       const next = [...prev, item]
       const stored = localStorage.getItem('links')
       const all = stored ? JSON.parse(stored) : []
@@ -127,23 +128,22 @@ function MyLinks() {
     })
   }
 
+  // 刪除連結
   function handleDelete(id) {
-    setLinks((prev) => {
-      const next = prev.filter((item) => item.id !== id)
+    setLinks(prev => {
+      const next = prev.filter(item => item.id !== id)
       const stored = localStorage.getItem('links')
-      const all = stored ? JSON.parse(stored).filter((l) => l.id !== id) : []
+      const all = stored ? JSON.parse(stored).filter(l => l.id !== id) : []
       localStorage.setItem('links', JSON.stringify(all))
       return next
     })
-
-    if (selectedLink && selectedLink.id === id) {
-      setSelectedLink(null)
-    }
+    if (selectedLink?.id === id) setSelectedLink(null)
   }
 
+  // 點擊標籤 → 篩選
   function handleTagSelect(tag) {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     )
   }
 
@@ -162,9 +162,7 @@ function MyLinks() {
 
   const filteredLinks = useMemo(() => {
     if (selectedTags.length === 0) return links
-    return links.filter((link) =>
-      selectedTags.every((tag) => link.tags.includes(tag))
-    )
+    return links.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
   }, [links, selectedTags])
 
   return (
@@ -174,24 +172,29 @@ function MyLinks() {
           <Header />
           <StatsPanel links={links} />
         </div>
+
         <NavTabs />
+
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
+
             <TagFilter
               tags={availableTags}
               selected={selectedTags}
               mode="multi"
               onChange={setSelectedTags}
             />
+
             <div className="space-y-6">
               {filteredLinks.length > 0 ? (
-                filteredLinks.map((link) => renderListItem(link))
+                filteredLinks.map(link => renderListItem(link))
               ) : (
                 <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>
               )}
             </div>
           </div>
+
           <div className="w-full md:w-1/2 mt-6 md:mt-0">
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
@@ -208,3 +211,4 @@ function MyLinks() {
 }
 
 export default MyLinks
+
