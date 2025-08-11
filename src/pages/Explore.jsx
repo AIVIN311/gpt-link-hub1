@@ -5,24 +5,20 @@ import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
-import StatsPanel from '../components/StatsPanel.jsx'
-import NavTabs from '../components/NavTabs.jsx'
+
+// === 可見性旗標：公開視圖不顯示統計（之後要改可從環境變數或設定注入）===
+const IS_PUBLIC = true
+
+// 只有在非公開模式才懶載入 StatsPanel，避免多餘 bundle
+const LazyStatsPanel = !IS_PUBLIC
+  ? React.lazy(() => import('../components/StatsPanel.jsx'))
+  : null
 
 const USER_ID_KEY = 'userUuid'
 
 const SAMPLE_LINKS = [
-  {
-    title: '示範連結 1',
-    description: '範例對話描述',
-    tags: ['ChatGPT', '示範'],
-    url: 'https://chat.openai.com/share/example-1',
-  },
-  {
-    title: '示範連結 2',
-    description: '另外一個對話範例',
-    tags: ['AI', '分享'],
-    url: 'https://chat.openai.com/share/example-2',
-  },
+  { title: '示範連結 1', description: '範例對話描述', tags: ['ChatGPT', '示範'], url: 'https://chat.openai.com/share/example-1' },
+  { title: '示範連結 2', description: '另外一個對話範例', tags: ['AI', '分享'], url: 'https://chat.openai.com/share/example-2' },
 ]
 
 // 產生唯一項目 ID
@@ -31,13 +27,13 @@ function generateItemId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 產生使用者 ID（若瀏覽器支援則用 UUID）
+// 產生使用者 ID
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 正規化每一筆資料結構
+// 正規化資料
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
@@ -58,12 +54,13 @@ function Explore() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+
   const availableTags = useMemo(
-    () => [...new Set(links.flatMap((l) => l.tags))],
+    () => [...new Set(links.flatMap(l => l.tags))],
     [links]
   )
 
-  // ✨ 第一次載入時，初始化 userId
+  // 初始化使用者
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
@@ -73,7 +70,7 @@ function Explore() {
     setUserId(uid)
   }, [])
 
-  // 🚀 當 userId 有值後，讀取 localStorage，若無資料則載入範例連結
+  // 載入/規範化資料，無資料時放入示例
   useEffect(() => {
     if (!userId) return
 
@@ -81,27 +78,21 @@ function Explore() {
       let changed = false
       const normalized = await Promise.all(
         items.map(async (item) => {
-          let updated = normalizeItem(item, userId)
+          const updated = normalizeItem(item, userId)
           if (!item.createdAt) changed = true
-
           if (!updated.summary) {
             try {
               const result = await summarizer.run(updated.url)
               updated.summary = result.summary
               changed = true
-            } catch (err) {
-              console.warn('Summarizer failed for stored link', err)
+            } catch {
               updated.summary = '（暫無摘要）'
             }
           }
-
           return updated
         })
       )
-
-      if (changed || save) {
-        localStorage.setItem('links', JSON.stringify(normalized))
-      }
+      if (changed || save) localStorage.setItem('links', JSON.stringify(normalized))
       setLinks(normalized)
     }
 
@@ -109,13 +100,10 @@ function Explore() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          processItems(parsed)
-        } else {
-          processItems(SAMPLE_LINKS, true)
-        }
-      } catch (e) {
-        console.error('Failed to parse links from localStorage', e)
+        Array.isArray(parsed) && parsed.length > 0
+          ? processItems(parsed)
+          : processItems(SAMPLE_LINKS, true)
+      } catch {
         processItems(SAMPLE_LINKS, true)
       }
     } else {
@@ -123,48 +111,42 @@ function Explore() {
     }
   }, [userId, summarizer])
 
-  // ➕ 使用者貼上新連結
+  // 新增連結
   async function handleAdd(data) {
     const base = normalizeItem(data, userId)
     let summary = ''
-
     try {
       const result = await summarizer.run(base.url)
       summary = result.summary
-    } catch (err) {
-      console.warn('Summarizer failed when adding link', err)
+    } catch {
       summary = '（暫無摘要）'
     }
-
     const item = { ...base, summary, createdAt: base.createdAt }
-
-    setLinks((prev) => {
+    setLinks(prev => {
       const next = [...prev, item]
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
   }
 
-  // ❌ 刪除連結
+  // 刪除
   function handleDelete(id) {
-    setLinks((prev) => {
-      const next = prev.filter((item) => item.id !== id)
+    setLinks(prev => {
+      const next = prev.filter(item => item.id !== id)
       localStorage.setItem('links', JSON.stringify(next))
       return next
     })
-
-    if (selectedLink && selectedLink.id === id) {
-      setSelectedLink(null)
-    }
+    if (selectedLink?.id === id) setSelectedLink(null)
   }
 
+  // 點標籤→篩選
   function handleTagSelect(tag) {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     )
   }
 
-  // 🧩 渲染每一筆連結卡片
+  // 渲染卡片
   function renderListItem(link) {
     const allowDelete = link.createdBy === userId
     return (
@@ -181,9 +163,7 @@ function Explore() {
 
   const filteredLinks = useMemo(() => {
     if (selectedTags.length === 0) return links
-    return links.filter((link) =>
-      selectedTags.every((tag) => link.tags.includes(tag))
-    )
+    return links.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
   }, [links, selectedTags])
 
   return (
@@ -191,34 +171,52 @@ function Explore() {
       <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-start">
           <Header />
-          <StatsPanel links={links} />
+          {!IS_PUBLIC && LazyStatsPanel && (
+            <React.Suspense fallback={null}>
+              <LazyStatsPanel links={links} compact />
+            </React.Suspense>
+          )}
         </div>
-        <NavTabs />
+
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-1/2 space-y-6">
+          <div className="w-full md:w-7/12 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
+
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500">已選 {selectedTags.length}</span>
+              {selectedTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTags([])}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  清除
+                </button>
+              )}
+            </div>
+
             <TagFilter
               tags={availableTags}
               selected={selectedTags}
               mode="multi"
               onChange={setSelectedTags}
             />
+
             <div className="space-y-6">
-              {filteredLinks.length > 0 ? (
-                filteredLinks.map((link) => renderListItem(link))
-              ) : (
-                <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>
-              )}
+              {filteredLinks.length > 0
+                ? filteredLinks.map(renderListItem)
+                : <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>}
             </div>
           </div>
-          <div className="w-full md:w-1/2 mt-6 md:mt-0">
-            {selectedLink ? (
-              <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
-            ) : (
-              <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
-                請選擇一個連結以預覽
-              </div>
-            )}
+
+          <div className="w-full md:w-5/12 mt-6 md:mt-0 md:sticky md:top-24 self-start">
+            {selectedLink
+              ? <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
+              : (
+                <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
+                  請選擇一個連結以預覽
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -227,3 +225,4 @@ function Explore() {
 }
 
 export default Explore
+
