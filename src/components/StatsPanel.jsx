@@ -41,6 +41,7 @@ function StatsPanel({
   if (hidden) return null
 
   // Compact：三枚統計膠囊
+  // Use blue for the weekly count and gray for totals to avoid confusion with tag chips
   if (compact) {
     return (
       <div className="flex flex-wrap items-center gap-2">
