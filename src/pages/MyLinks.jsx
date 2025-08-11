@@ -52,6 +52,7 @@ function MyLinks() {
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
   const listRef = useRef(null)
+  const uploadRef = useRef(null)
 
   const availableTags = useMemo(
     () => [...new Set(links.flatMap(l => l.tags))],
@@ -209,7 +210,7 @@ function MyLinks() {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-7/12 space-y-6">
-            <UploadLinkBox onAdd={handleAdd} />
+            <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
             <div className="mt-2">
               <TagFilter
@@ -233,8 +234,15 @@ function MyLinks() {
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
-              <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
-                請選擇一個連結以預覽
+              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify-center h-full p-6 rounded">
+                <p className="mb-2">請選擇一個連結以預覽</p>
+                <button
+                  type="button"
+                  className="text-sm text-blue-500 hover:underline"
+                  onClick={() => uploadRef.current?.focus()}
+                >
+                  貼上連結
+                </button>
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 
-export default function UploadLinkBox({ onAdd }) {
+const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState(''); // 手動輸入（以逗號分隔）
@@ -94,6 +94,7 @@ export default function UploadLinkBox({ onAdd }) {
   return (
     <div className="bg-white p-3 md:p-4 rounded shadow space-y-3 w-full max-w-md text-sm md:text-base">
       <input
+        ref={ref}
         className="w-full bg-white border border-gray-300 rounded-md px-4 py-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder="貼上公開分享連結"
         value={link}
@@ -163,5 +164,7 @@ export default function UploadLinkBox({ onAdd }) {
       </button>
     </div>
   );
-}
+});
+
+export default UploadLinkBox;
 
