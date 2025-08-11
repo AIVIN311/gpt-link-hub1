@@ -52,6 +52,7 @@ function MyLinks() {
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
   const listRef = useRef(null)
+  const uploadRef = useRef(null)
 
   const availableTags = useMemo(
     () => [...new Set(links.flatMap(l => l.tags))],
@@ -73,6 +74,7 @@ function MyLinks() {
     if (!listRef.current) return
     const sortable = new Sortable(listRef.current, {
       animation: 150,
+      handle: '.drag-handle',
       onEnd: ({ oldIndex, newIndex }) => {
         setLinks(prev => {
           const updated = [...prev]
@@ -208,23 +210,9 @@ function MyLinks() {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-7/12 space-y-6">
-            <UploadLinkBox onAdd={handleAdd} />
+            <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  已選 {selectedTags.length} 個
-                </span>
-                {selectedTags.length > 0 && (
-                  <button
-                    className="text-sm text-blue-500 hover:underline"
-                    onClick={() => setSelectedTags([])}
-                  >
-                    清除
-                  </button>
-                )}
-              </div>
-
+            <div className="mt-2">
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
@@ -242,12 +230,19 @@ function MyLinks() {
             </div>
           </div>
 
-          <div className="w-full md:w-5/12 md:sticky md:top-24 self-start mt-6 md:mt-0">
+          <div className="w-full md:w-5/12 md:sticky md:top-28 self-start mt-6 md:mt-2">
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
-              <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
-                請選擇一個連結以預覽
+              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify-center h-full p-6 rounded">
+                <p className="mb-2">請選擇一個連結以預覽</p>
+                <button
+                  type="button"
+                  className="text-sm text-blue-500 hover:underline"
+                  onClick={() => uploadRef.current?.focus()}
+                >
+                  貼上連結
+                </button>
               </div>
             )}
           </div>
