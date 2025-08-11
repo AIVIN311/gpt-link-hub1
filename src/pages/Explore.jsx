@@ -81,6 +81,7 @@ function Explore() {
       const normalized = await Promise.all(
         items.map(async (item) => {
           let updated = normalizeItem(item, userId)
+          if (!item.createdAt) changed = true
 
           if (!updated.summary) {
             try {
@@ -134,7 +135,7 @@ function Explore() {
       summary = '（暫無摘要）'
     }
 
-    const item = { ...base, summary }
+    const item = { ...base, summary, createdAt: base.createdAt }
 
     setLinks((prev) => {
       const next = [...prev, item]
