@@ -5,6 +5,7 @@ import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
+import StatsPanel from '../components/StatsPanel.jsx'
 
 const USER_ID_KEY = 'userUuid'
 
@@ -46,7 +47,7 @@ function normalizeItem(data, userId) {
     language: data.language || 'unknown',
     description: data.description || '',
     createdBy: data.createdBy || userId,
-    createdAt: data.createdAt || Date.now(),
+    createdAt: data.createdAt || new Date().toISOString(),
   }
 }
 
@@ -180,7 +181,10 @@ function Explore() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
       <div className="container mx-auto px-4 space-y-6">
-        <Header />
+        <div className="flex justify-between items-start">
+          <Header />
+          <StatsPanel links={links} />
+        </div>
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
