@@ -1,9 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function UploadLinkBox({ onAdd }) {
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
+  const [suggested, setSuggested] = useState([]);
+
+  useEffect(() => {
+    const text = `${title} ${link}`.trim();
+    if (!text) {
+      setSuggested([]);
+      return;
+    }
+    let ignore = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/agent/tagger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        const data = await res.json();
+        if (!ignore && Array.isArray(data.tags)) setSuggested(data.tags);
+      } catch {
+        if (!ignore) setSuggested([]);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, [link, title]);
+
+  const handleAddTag = (tag) => {
+    const current = tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t);
+    if (!current.includes(tag)) {
+      current.push(tag);
+      setTags(current.join(', '));
+    }
+  };
 
   const handleSubmit = () => {
     if (!link.trim()) return;
@@ -58,6 +95,20 @@ export default function UploadLinkBox({ onAdd }) {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+      {suggested.length > 0 && (
+        <div data-testid="suggested-tags" className="flex flex-wrap gap-2">
+          {suggested.map((tag) => (
+            <button
+              type="button"
+              key={tag}
+              className="bg-gray-200 text-sm px-2 py-1 rounded"
+              onClick={() => handleAddTag(tag)}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      )}
       <button
         className="w-full bg-blue-500 text-white px-4 py-2 rounded"
         onClick={handleSubmit}
