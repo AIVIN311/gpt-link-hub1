@@ -55,6 +55,11 @@ function Explore() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [selectedTags, setSelectedTags] = useState([])
   const [userId, setUserId] = useState('')
+  const [selectedTags, setSelectedTags] = useState([])
+  const availableTags = useMemo(
+    () => [...new Set(links.flatMap((l) => l.tags))],
+    [links]
+  )
 
   // ✨ 第一次載入時，初始化 userId
   useEffect(() => {
