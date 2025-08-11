@@ -46,7 +46,7 @@ export default function UploadLinkBox({ onAdd }) {
       } catch {
         // 靜默失敗：清空建議避免干擾使用者
         setSuggestions([]);
-        // console.error(err);
+        // console.error(err)
       }
     }, 500); // debounce
 

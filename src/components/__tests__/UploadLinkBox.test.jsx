@@ -13,7 +13,7 @@ describe('UploadLinkBox tag suggestions', () => {
     vi.restoreAllMocks()
   })
 
-  test('shows suggested tags from API and allows toggling them', async () => {
+  test('shows suggested tags from API and allows toggling selection', async () => {
     render(<UploadLinkBox onAdd={vi.fn()} />)
 
     // 觸發建議產生
@@ -38,3 +38,4 @@ describe('UploadLinkBox tag suggestions', () => {
     })
   })
 })
+

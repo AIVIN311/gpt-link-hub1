@@ -42,8 +42,11 @@ function LinkCard({
         </button>
       )}
 
-      {/* 標題 */}
-      <h2 className="text-xl font-semibold text-black">{displayTitle}</h2>
+      {/* 標題與拖曳手把 */}
+      <div className="flex items-center gap-2">
+        <span className="drag-handle cursor-grab active:cursor-grabbing">≡</span>
+        <h2 className="text-xl font-semibold text-black">{displayTitle}</h2>
+      </div>
 
       {/* 描述（已清理） */}
       {description && (
