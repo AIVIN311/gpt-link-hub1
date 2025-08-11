@@ -209,7 +209,7 @@ function Explore() {
             </div>
           </div>
 
-          <div className="w-full md:w-5/12 mt-6 md:mt-0 md:sticky md:top-24 self-start">
+          <div className="w-full md:w-5/12 mt-6 md:mt-2 md:sticky md:top-28 self-start">
             {selectedLink
               ? <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
               : (

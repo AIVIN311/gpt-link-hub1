@@ -242,7 +242,7 @@ function MyLinks() {
             </div>
           </div>
 
-          <div className="w-full md:w-5/12 md:sticky md:top-24 self-start mt-6 md:mt-0">
+          <div className="w-full md:w-5/12 md:sticky md:top-28 self-start mt-6 md:mt-2">
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
