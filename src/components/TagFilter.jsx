@@ -19,7 +19,7 @@ function TagFilter({ tags = [], selected = [], onChange, mode = 'multi' }) {
   return (
     <div>
       <div className="flex items-center gap-2 mb-2">
-        <span data-testid="selected-count">已選擇 {selected.length} 個標籤</span>
+        <span data-testid="selected-count">已選 {selected.length} 個標籤</span>
         {selected.length > 0 && (
           <button
             type="button"
