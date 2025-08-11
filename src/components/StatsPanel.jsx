@@ -7,64 +7,57 @@ function StatsPanel({
   hidden = false,
 }) {
   const weeklyCount = useMemo(() => {
-    const now = Date.now()
-    const weekAgo = now - 7 * 24 * 60 * 60 * 1000
-    return links.filter((l) => {
-      if (!l.createdAt) return false
-      return new Date(l.createdAt).getTime() >= weekAgo
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    return links.filter(l => {
+      const t = l?.createdAt ? new Date(l.createdAt).getTime() : NaN
+      return Number.isFinite(t) && t >= weekAgo
     }).length
   }, [links])
 
   const totalCount = links.length
 
   const uniqueTagCount = useMemo(() => {
-    const tagSet = new Set()
-    links.forEach((link) => {
-      if (Array.isArray(link.tags)) {
-        link.tags.forEach((tag) => tagSet.add(tag))
-      }
-    })
-    return tagSet.size
+    const set = new Set()
+    for (const l of links) if (Array.isArray(l.tags)) for (const t of l.tags) set.add(t)
+    return set.size
   }, [links])
 
   const topTags = useMemo(() => {
-    const counts = links.reduce((acc, link) => {
-      if (Array.isArray(link.tags)) {
-        link.tags.forEach((tag) => {
-          acc[tag] = (acc[tag] || 0) + 1
-        })
+    const counts = links.reduce((acc, l) => {
+      if (Array.isArray(l.tags)) {
+        for (const t of l.tags) acc[t] = (acc[t] || 0) + 1
       }
       return acc
     }, {})
-
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5)
   }, [links])
 
-  const containerClasses =
-    position === 'footer'
-      ? 'bg-white shadow rounded p-4 w-full'
-      : 'bg-white shadow rounded p-4 md:w-64 md:ml-auto'
+  // 位置樣式（僅完整版需要容器）
+  const containerClasses = position === 'footer'
+    ? 'bg-white shadow rounded p-4 w-full'
+    : 'bg-white shadow rounded p-4 md:w-64 md:ml-auto'
 
+  // 外部要求不顯示
   if (hidden) return null
 
+  // Compact：三枚統計膠囊
   if (compact) {
     return (
-      <div className="flex flex-wrap gap-2">
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-          本週新增數：{weeklyCount}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+          本週新增：{weeklyCount}
         </span>
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
-          總連結數：{totalCount}
+        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+          總連結：{totalCount}
         </span>
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
           標籤總數：{uniqueTagCount}
         </span>
       </div>
     )
   }
 
+  // Full panel
   return (
     <div className={containerClasses}>
       <h2 className="text-lg font-semibold mb-2">統計資訊</h2>
