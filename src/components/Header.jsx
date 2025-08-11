@@ -1,15 +1,21 @@
 import React from 'react'
+import { NavLink } from 'react-router-dom'
 
 function Header() {
+  const tabClass = ({ isActive }) =>
+    `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+      isActive ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-200'
+    }`
+
   return (
-    <header className="space-y-4">
-      <img
-        src="/vite.svg"
-        alt="GPT Link Hub logo"
-        className="w-24 h-24 mx-auto rounded-full bg-white p-2 shadow"
-      />
-      <h1 className="text-4xl font-bold text-black">GPT Link Hub</h1>
-    </header>
+    <nav className="flex justify-center gap-4">
+      <NavLink to="/explore" className={tabClass}>
+        Explore
+      </NavLink>
+      <NavLink to="/" end className={tabClass}>
+        My Links
+      </NavLink>
+    </nav>
   )
 }
 
