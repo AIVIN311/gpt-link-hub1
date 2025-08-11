@@ -8,12 +8,17 @@ function Home() {
       <div className="container mx-auto px-4 max-w-screen-sm w-full space-y-6 text-center">
         <Header />
         <p className="text-gray-700">蒐集與分類各種 ChatGPT 對話連結的平台</p>
+        <ul className="mt-4 text-gray-700 text-left list-disc list-inside space-y-1">
+          <li>收藏 ChatGPT 對話連結</li>
+          <li>用標籤整理與再搜尋</li>
+          <li>一鍵預覽與二次分享</li>
+        </ul>
         <div className="mt-4 space-x-4">
           <Link
             to="/explore"
             className="px-4 py-2 bg-blue-500 text-white rounded"
           >
-            馬上開始探索
+            探索
           </Link>
           <Link
             to="/my-links"
