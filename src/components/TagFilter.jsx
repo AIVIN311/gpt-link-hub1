@@ -18,20 +18,23 @@ function TagFilter({ tags = [], selected = [], onChange, mode = 'multi' }) {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1">
         <span data-testid="selected-count">已選擇 {selected.length} 個標籤</span>
-        {selected.length > 0 && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="text-blue-500 text-sm"
-            data-testid="clear-selection"
-          >
-            清除
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={handleClear}
+          className={`text-sm ${
+            selected.length === 0
+              ? 'text-gray-300 cursor-not-allowed'
+              : 'text-blue-500'
+          }`}
+          data-testid="clear-selection"
+          disabled={selected.length === 0}
+        >
+          清除
+        </button>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 mt-1">
         {tags.map((tag) => {
           const active = selected.includes(tag)
           return (
