@@ -1,4 +1,5 @@
 import React from 'react'
+import PrimaryButton from './PrimaryButton'
 
 function LinkCard({
   id,
@@ -76,14 +77,14 @@ function LinkCard({
       )}
 
       {/* 外部連結 */}
-      <a
+      <PrimaryButton
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block text-center md:inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+        className="block text-center md:inline-block mt-2"
       >
         前往連結
-      </a>
+      </PrimaryButton>
       {summary && (
         <div
           className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 text-white text-xs p-4 rounded-lg transition-opacity duration-500 ${selected ? 'opacity-100' : 'opacity-0'}`}
@@ -96,5 +97,3 @@ function LinkCard({
 }
 
 export default LinkCard
-// LinkCard.jsx
-// 用於顯示連結卡片的組件
