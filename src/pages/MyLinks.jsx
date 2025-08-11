@@ -51,6 +51,9 @@ function MyLinks() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const [showStats, setShowStats] = useState(() =>
+    localStorage.getItem('showStats') !== '0'
+  )
   const listRef = useRef(null)
 
   const availableTags = useMemo(
@@ -176,6 +179,14 @@ function MyLinks() {
     )
   }
 
+  function handleToggleStats() {
+    setShowStats(prev => {
+      const next = !prev
+      localStorage.setItem('showStats', next ? '1' : '0')
+      return next
+    })
+  }
+
   function renderListItem(link) {
     return (
       <LinkCard
@@ -199,10 +210,20 @@ function MyLinks() {
       <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-start">
           <Header />
-          {!IS_PUBLIC && LazyStatsPanel && (
-            <React.Suspense fallback={null}>
-              <LazyStatsPanel links={links} compact />
-            </React.Suspense>
+          {!IS_PUBLIC && (
+            <div className="flex items-center gap-4">
+              {showStats && LazyStatsPanel && (
+                <React.Suspense fallback={null}>
+                  <LazyStatsPanel links={links} compact />
+                </React.Suspense>
+              )}
+              <button
+                className="text-sm text-blue-500 hover:underline"
+                onClick={handleToggleStats}
+              >
+                {showStats ? '隱藏統計' : '顯示統計'}
+              </button>
+            </div>
           )}
         </div>
 
