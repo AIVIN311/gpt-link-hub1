@@ -73,6 +73,7 @@ function MyLinks() {
     if (!listRef.current) return
     const sortable = new Sortable(listRef.current, {
       animation: 150,
+      handle: '.drag-handle',
       onEnd: ({ oldIndex, newIndex }) => {
         setLinks(prev => {
           const updated = [...prev]

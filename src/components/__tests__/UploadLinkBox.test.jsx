@@ -13,7 +13,7 @@ describe('UploadLinkBox tag suggestions', () => {
     vi.restoreAllMocks()
   })
 
-  test('shows suggested tags from API and allows adding them', async () => {
+  test('shows suggested tags from API and allows toggling selection', async () => {
     render(<UploadLinkBox onAdd={vi.fn()} />)
     fireEvent.change(
       screen.getByPlaceholderText('自訂標題（可留空）'),
@@ -22,9 +22,9 @@ describe('UploadLinkBox tag suggestions', () => {
 
     const suggestionBox = await screen.findByTestId('suggested-tags')
     expect(suggestionBox).toBeInTheDocument()
-    fireEvent.click(screen.getByText('AI'))
-    expect(
-      screen.getByPlaceholderText('標籤（以逗號分隔，例如 ChatGPT, 分類A）').value
-    ).toContain('AI')
+    const aiButton = screen.getByText('AI')
+    expect(aiButton.className).toContain('bg-blue-500')
+    fireEvent.click(aiButton)
+    expect(aiButton.className).not.toContain('bg-blue-500')
   })
 })
