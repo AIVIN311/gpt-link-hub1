@@ -8,6 +8,7 @@ import SummarizerAgent from '../agents/SummarizerAgent.js'
 import StatsPanel from '../components/StatsPanel.jsx'
 
 const USER_ID_KEY = 'userUuid'
+const isPublic = true
 
 const SAMPLE_LINKS = [
   {
@@ -190,11 +191,23 @@ function Explore() {
       <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-start">
           <Header />
-          <StatsPanel links={links} />
+          {!isPublic && <StatsPanel links={links} compact />}
         </div>
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-1/2 space-y-6">
+          <div className="w-full md:w-7/12 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
+            {selectedTags.length > 0 && (
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <span>已選 {selectedTags.length} 個標籤</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTags([])}
+                  className="text-blue-600 hover:underline"
+                >
+                  清除
+                </button>
+              </div>
+            )}
             <TagFilter
               tags={availableTags}
               selected={selectedTags}
@@ -209,7 +222,7 @@ function Explore() {
               )}
             </div>
           </div>
-          <div className="w-full md:w-1/2 mt-6 md:mt-0">
+          <div className="w-full md:w-5/12 mt-6 md:mt-0 md:sticky md:top-24 self-start">
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
