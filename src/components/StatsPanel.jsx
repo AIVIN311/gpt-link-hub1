@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react'
 
-function StatsPanel({ links = [], position = 'top-right' }) {
+function StatsPanel({
+  links = [],
+  position = 'top-right',
+  compact = false,
+  hidden = false,
+}) {
   const weeklyCount = useMemo(() => {
     const now = Date.now()
     const weekAgo = now - 7 * 24 * 60 * 60 * 1000
@@ -8,6 +13,18 @@ function StatsPanel({ links = [], position = 'top-right' }) {
       if (!l.createdAt) return false
       return new Date(l.createdAt).getTime() >= weekAgo
     }).length
+  }, [links])
+
+  const totalCount = links.length
+
+  const uniqueTagCount = useMemo(() => {
+    const tagSet = new Set()
+    links.forEach((link) => {
+      if (Array.isArray(link.tags)) {
+        link.tags.forEach((tag) => tagSet.add(tag))
+      }
+    })
+    return tagSet.size
   }, [links])
 
   const topTags = useMemo(() => {
@@ -29,6 +46,24 @@ function StatsPanel({ links = [], position = 'top-right' }) {
     position === 'footer'
       ? 'bg-white shadow rounded p-4 w-full'
       : 'bg-white shadow rounded p-4 md:w-64 md:ml-auto'
+
+  if (hidden) return null
+
+  if (compact) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+          本週新增數：{weeklyCount}
+        </span>
+        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+          總連結數：{totalCount}
+        </span>
+        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+          標籤總數：{uniqueTagCount}
+        </span>
+      </div>
+    )
+  }
 
   return (
     <div className={containerClasses}>
