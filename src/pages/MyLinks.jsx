@@ -1,15 +1,214 @@
-import React from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import Header from '../components/Header.jsx'
+import UploadLinkBox from '../components/UploadLinkBox.jsx'
+import LinkCard from '../components/LinkCard.jsx'
+import PreviewCard from '../components/PreviewCard.jsx'
+import TagFilter from '../components/TagFilter.jsx'
+import SummarizerAgent from '../agents/SummarizerAgent.js'
+import StatsPanel from '../components/StatsPanel.jsx'
+import NavTabs from '../components/NavTabs.jsx'
+
+const USER_ID_KEY = 'userUuid'
+
+function generateItemId() {
+  if (crypto?.randomUUID) return crypto.randomUUID()
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
+function generateUserId() {
+  if (crypto?.randomUUID) return crypto.randomUUID()
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+}
+
+function normalizeItem(data, userId) {
+  return {
+    id: data.id || generateItemId(),
+    url: data.url || data.link,
+    title: data.title || '未命名',
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    platform: data.platform || 'Unknown',
+    language: data.language || 'unknown',
+    description: data.description || '',
+    createdBy: data.createdBy || userId,
+    createdAt: data.createdAt || new Date().toISOString(),
+  }
+}
 
 function MyLinks() {
+  const summarizer = useMemo(() => new SummarizerAgent(), [])
+  const [links, setLinks] = useState([])
+  const [selectedLink, setSelectedLink] = useState(null)
+  const [userId, setUserId] = useState('')
+  const [selectedTags, setSelectedTags] = useState([])
+
+  const availableTags = useMemo(
+    () => [...new Set(links.flatMap(l => l.tags))],
+    [links]
+  )
+
+  // 初始化使用者 ID
+  useEffect(() => {
+    let uid = localStorage.getItem(USER_ID_KEY)
+    if (!uid) {
+      uid = generateUserId()
+      localStorage.setItem(USER_ID_KEY, uid)
+    }
+    setUserId(uid)
+  }, [])
+
+  // 載入/規範化/摘要化資料，並只保留自己建立的連結
+  useEffect(() => {
+    if (!userId) return
+
+    const processItems = async (items, save = false) => {
+      let changed = false
+      const normalized = await Promise.all(
+        items.map(async (item) => {
+          let updated = normalizeItem(item, userId)
+          if (!item.createdAt) changed = true
+
+          if (!updated.summary) {
+            try {
+              const result = await summarizer.run(updated.url)
+              updated.summary = result.summary
+              changed = true
+            } catch (err) {
+              console.warn('Summarizer failed for stored link', err)
+              updated.summary = '（暫無摘要）'
+            }
+          }
+          return updated
+        })
+      )
+
+      const mine = normalized.filter(l => l.createdBy === userId)
+      if (changed || save) {
+        localStorage.setItem('links', JSON.stringify(normalized))
+      }
+      setLinks(mine)
+    }
+
+    const stored = localStorage.getItem('links')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          processItems(parsed)
+        } else {
+          setLinks([])
+        }
+      } catch (e) {
+        console.error('Failed to parse links from localStorage', e)
+        setLinks([])
+      }
+    } else {
+      setLinks([])
+    }
+  }, [userId, summarizer])
+
+  // 新增連結
+  async function handleAdd(data) {
+    const base = normalizeItem(data, userId)
+    let summary = ''
+    try {
+      const result = await summarizer.run(base.url)
+      summary = result.summary
+    } catch (err) {
+      console.warn('Summarizer failed when adding link', err)
+      summary = '（暫無摘要）'
+    }
+    const item = { ...base, summary, createdAt: base.createdAt }
+
+    setLinks(prev => {
+      const next = [...prev, item]
+      const stored = localStorage.getItem('links')
+      const all = stored ? JSON.parse(stored) : []
+      localStorage.setItem('links', JSON.stringify([...all, item]))
+      return next
+    })
+  }
+
+  // 刪除連結
+  function handleDelete(id) {
+    setLinks(prev => {
+      const next = prev.filter(item => item.id !== id)
+      const stored = localStorage.getItem('links')
+      const all = stored ? JSON.parse(stored).filter(l => l.id !== id) : []
+      localStorage.setItem('links', JSON.stringify(all))
+      return next
+    })
+    if (selectedLink?.id === id) setSelectedLink(null)
+  }
+
+  // 點擊標籤 → 篩選
+  function handleTagSelect(tag) {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    )
+  }
+
+  function renderListItem(link) {
+    return (
+      <LinkCard
+        key={link.id}
+        {...link}
+        selected={selectedLink && selectedLink.id === link.id}
+        onSelect={() => setSelectedLink(link)}
+        onDelete={() => handleDelete(link.id)}
+        onTagSelect={handleTagSelect}
+      />
+    )
+  }
+
+  const filteredLinks = useMemo(() => {
+    if (selectedTags.length === 0) return links
+    return links.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
+  }, [links, selectedTags])
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 overflow-x-hidden">
-      <div className="container mx-auto px-4 max-w-screen-sm w-full space-y-6 text-center">
-        <Header />
-        <p className="text-gray-700">我的連結頁面</p>
+    <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
+      <div className="container mx-auto px-4 space-y-6">
+        <div className="flex justify-between items-start">
+          <Header />
+          <StatsPanel links={links} />
+        </div>
+
+        <NavTabs />
+
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/2 space-y-6">
+            <UploadLinkBox onAdd={handleAdd} />
+
+            <TagFilter
+              tags={availableTags}
+              selected={selectedTags}
+              mode="multi"
+              onChange={setSelectedTags}
+            />
+
+            <div className="space-y-6">
+              {filteredLinks.length > 0 ? (
+                filteredLinks.map(link => renderListItem(link))
+              ) : (
+                <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>
+              )}
+            </div>
+          </div>
+
+          <div className="w-full md:w-1/2 mt-6 md:mt-0">
+            {selectedLink ? (
+              <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
+            ) : (
+              <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
+                請選擇一個連結以預覽
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
 export default MyLinks
+

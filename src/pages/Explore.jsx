@@ -6,6 +6,7 @@ import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 import StatsPanel from '../components/StatsPanel.jsx'
+import NavTabs from '../components/NavTabs.jsx'
 
 const USER_ID_KEY = 'userUuid'
 
@@ -192,6 +193,7 @@ function Explore() {
           <Header />
           <StatsPanel links={links} />
         </div>
+        <NavTabs />
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
