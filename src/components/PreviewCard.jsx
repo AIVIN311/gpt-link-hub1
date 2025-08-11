@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-function PreviewCard({ title, description, summary, tags = [], url, onTagSelect }) {
+function PreviewCard({ title, description, summary, tags = [], url }) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -22,17 +22,12 @@ function PreviewCard({ title, description, summary, tags = [], url, onTagSelect 
       )}
       <div className="flex flex-wrap gap-2">
         {displayTags.map((tag) => (
-          <button
+          <span
             key={tag}
-            type="button"
             className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              onTagSelect?.(tag)
-            }}
           >
             #{tag}
-          </button>
+          </span>
         ))}
       </div>
       <a
