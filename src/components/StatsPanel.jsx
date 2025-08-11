@@ -41,16 +41,17 @@ function StatsPanel({
   if (hidden) return null
 
   // Compact：三枚統計膠囊
+  // Use blue for the weekly count and gray for totals to avoid confusion with tag chips
   if (compact) {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+        <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm">
           本週新增：{weeklyCount}
         </span>
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+        <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
           總連結：{totalCount}
         </span>
-        <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+        <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
           標籤總數：{uniqueTagCount}
         </span>
       </div>
