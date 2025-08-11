@@ -7,30 +7,26 @@ import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 import Sortable from 'sortablejs'
 
-// === 可見性旗標：MyLinks 視為個人頁（非公開）時才顯示統計 ===
-// 若之後要走環境變數，改成：const IS_PUBLIC = import.meta.env.VITE_PUBLIC_VIEW === 'true'
+// 視為個人頁（非公開）時才顯示統計；之後可改為環境變數
 const IS_PUBLIC = false
 
-// 只有在非公開模式才懶載入 StatsPanel
+// 非公開模式才懶載入 StatsPanel（減少 bundle 體積）
 const LazyStatsPanel = !IS_PUBLIC
   ? React.lazy(() => import('../components/StatsPanel.jsx'))
   : null
 
 const USER_ID_KEY = 'userUuid'
 
-// 產生唯一項目 ID
 function generateItemId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 產生使用者 ID
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 正規化每一筆資料結構
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
@@ -52,20 +48,19 @@ function MyLinks() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const [showStats, setShowStats] = useState(() => localStorage.getItem('showStats') !== '0')
   const listRef = useRef(null)
+  const uploadRef = useRef(null)
 
-  const availableTags = useMemo(
-    () => Object.keys(tagCounts),
-    [tagCounts]
-  )
+  const availableTags = useMemo(() => Object.keys(tagCounts), [tagCounts])
 
-  const buildTagCounts = items => {
+  const buildTagCounts = (items) => {
     const counts = {}
     for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
     return counts
   }
 
-  const increaseTagCounts = tags => {
+  const increaseTagCounts = (tags) => {
     setTagCounts(prev => {
       const next = { ...prev }
       for (const t of tags) next[t] = (next[t] || 0) + 1
@@ -73,7 +68,7 @@ function MyLinks() {
     })
   }
 
-  const decreaseTagCounts = tags => {
+  const decreaseTagCounts = (tags) => {
     setTagCounts(prev => {
       const next = { ...prev }
       for (const t of tags) {
@@ -94,11 +89,12 @@ function MyLinks() {
     setUserId(uid)
   }, [])
 
-  // 啟用拖曳排序
+  // 啟用拖曳排序（限定拖把 .drag-handle）
   useEffect(() => {
     if (!listRef.current) return
     const sortable = new Sortable(listRef.current, {
       animation: 150,
+      handle: '.drag-handle',
       onEnd: ({ oldIndex, newIndex }) => {
         setLinks(prev => {
           const updated = [...prev]
@@ -137,9 +133,7 @@ function MyLinks() {
       )
 
       const mine = normalized.filter(l => l.createdBy === userId)
-      if (changed || save) {
-        localStorage.setItem('links', JSON.stringify(normalized))
-      }
+      if (changed || save) localStorage.setItem('links', JSON.stringify(normalized))
       setLinks(mine)
       setTagCounts(buildTagCounts(mine))
     }
@@ -148,11 +142,8 @@ function MyLinks() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          processItems(parsed)
-        } else {
-          setLinks([])
-        }
+        if (Array.isArray(parsed) && parsed.length > 0) processItems(parsed)
+        else setLinks([])
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
         setLinks([])
@@ -201,9 +192,16 @@ function MyLinks() {
 
   // 點擊標籤 → 篩選
   function handleTagSelect(tag) {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    )
+    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+  }
+
+  // 顯示／隱藏統計（存偏好）
+  function handleToggleStats() {
+    setShowStats(prev => {
+      const next = !prev
+      localStorage.setItem('showStats', next ? '1' : '0')
+      return next
+    })
   }
 
   function renderListItem(link) {
@@ -229,32 +227,29 @@ function MyLinks() {
       <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-start">
           <Header />
-          {!IS_PUBLIC && LazyStatsPanel && (
-            <React.Suspense fallback={null}>
-              <LazyStatsPanel links={links} tagCounts={tagCounts} compact />
-            </React.Suspense>
+          {!IS_PUBLIC && (
+            <div className="flex items-center gap-4">
+              {showStats && LazyStatsPanel && (
+                <React.Suspense fallback={null}>
+                  {/* 傳入 tagCounts 以便未來擴充；當前不使用也無妨 */}
+                  <LazyStatsPanel links={links} tagCounts={tagCounts} compact />
+                </React.Suspense>
+              )}
+              <button
+                className="text-sm text-blue-500 hover:underline"
+                onClick={handleToggleStats}
+              >
+                {showStats ? '隱藏統計' : '顯示統計'}
+              </button>
+            </div>
           )}
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-7/12 space-y-6">
-            <UploadLinkBox onAdd={handleAdd} />
+            <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  已選 {selectedTags.length} 個
-                </span>
-                {selectedTags.length > 0 && (
-                  <button
-                    className="text-sm text-blue-500 hover:underline"
-                    onClick={() => setSelectedTags([])}
-                  >
-                    清除
-                  </button>
-                )}
-              </div>
-
+            <div className="mt-2">
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
@@ -272,12 +267,19 @@ function MyLinks() {
             </div>
           </div>
 
-          <div className="w-full md:w-5/12 md:sticky md:top-24 self-start mt-6 md:mt-0">
+          <div className="w-full md:w-5/12 md:sticky md:top-28 self-start mt-6 md:mt-2">
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
-              <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
-                請選擇一個連結以預覽
+              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify-center h-full p-6 rounded">
+                <p className="mb-2">請選擇一個連結以預覽</p>
+                <button
+                  type="button"
+                  className="text-sm text-blue-500 hover:underline"
+                  onClick={() => uploadRef.current?.focus?.()}
+                >
+                  貼上連結
+                </button>
               </div>
             )}
           </div>
@@ -288,5 +290,6 @@ function MyLinks() {
 }
 
 export default MyLinks
+
 
 

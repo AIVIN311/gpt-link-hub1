@@ -9,6 +9,7 @@ function Home() {
         <Header />
         <p className="text-gray-700">蒐集與分類各種 ChatGPT 對話連結的平台</p>
         <ul className="mt-4 text-gray-700 text-left list-disc list-inside space-y-1">
+          <li>把對話變成可搜索的知識卡</li>
           <li>收藏 ChatGPT 對話連結</li>
           <li>用標籤整理與再搜尋</li>
           <li>一鍵預覽與二次分享</li>
