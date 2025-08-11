@@ -10,34 +10,16 @@ import NavTabs from '../components/NavTabs.jsx'
 
 const USER_ID_KEY = 'userUuid'
 
-const SAMPLE_LINKS = [
-  {
-    title: '示範連結 1',
-    description: '範例對話描述',
-    tags: ['ChatGPT', '示範'],
-    url: 'https://chat.openai.com/share/example-1',
-  },
-  {
-    title: '示範連結 2',
-    description: '另外一個對話範例',
-    tags: ['AI', '分享'],
-    url: 'https://chat.openai.com/share/example-2',
-  },
-]
-
-// 產生唯一項目 ID
 function generateItemId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 產生使用者 ID（若瀏覽器支援則用 UUID）
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 正規化每一筆資料結構
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
@@ -52,7 +34,7 @@ function normalizeItem(data, userId) {
   }
 }
 
-function Explore() {
+function MyLinks() {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([])
   const [selectedLink, setSelectedLink] = useState(null)
@@ -63,7 +45,6 @@ function Explore() {
     [links]
   )
 
-  // ✨ 第一次載入時，初始化 userId
   useEffect(() => {
     let uid = localStorage.getItem(USER_ID_KEY)
     if (!uid) {
@@ -73,7 +54,6 @@ function Explore() {
     setUserId(uid)
   }, [])
 
-  // 🚀 當 userId 有值後，讀取 localStorage，若無資料則載入範例連結
   useEffect(() => {
     if (!userId) return
 
@@ -99,10 +79,11 @@ function Explore() {
         })
       )
 
+      const mine = normalized.filter((l) => l.createdBy === userId)
       if (changed || save) {
         localStorage.setItem('links', JSON.stringify(normalized))
       }
-      setLinks(normalized)
+      setLinks(mine)
     }
 
     const stored = localStorage.getItem('links')
@@ -112,18 +93,17 @@ function Explore() {
         if (Array.isArray(parsed) && parsed.length > 0) {
           processItems(parsed)
         } else {
-          processItems(SAMPLE_LINKS, true)
+          setLinks([])
         }
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
-        processItems(SAMPLE_LINKS, true)
+        setLinks([])
       }
     } else {
-      processItems(SAMPLE_LINKS, true)
+      setLinks([])
     }
   }, [userId, summarizer])
 
-  // ➕ 使用者貼上新連結
   async function handleAdd(data) {
     const base = normalizeItem(data, userId)
     let summary = ''
@@ -140,16 +120,19 @@ function Explore() {
 
     setLinks((prev) => {
       const next = [...prev, item]
-      localStorage.setItem('links', JSON.stringify(next))
+      const stored = localStorage.getItem('links')
+      const all = stored ? JSON.parse(stored) : []
+      localStorage.setItem('links', JSON.stringify([...all, item]))
       return next
     })
   }
 
-  // ❌ 刪除連結
   function handleDelete(id) {
     setLinks((prev) => {
       const next = prev.filter((item) => item.id !== id)
-      localStorage.setItem('links', JSON.stringify(next))
+      const stored = localStorage.getItem('links')
+      const all = stored ? JSON.parse(stored).filter((l) => l.id !== id) : []
+      localStorage.setItem('links', JSON.stringify(all))
       return next
     })
 
@@ -164,16 +147,14 @@ function Explore() {
     )
   }
 
-  // 🧩 渲染每一筆連結卡片
   function renderListItem(link) {
-    const allowDelete = link.createdBy === userId
     return (
       <LinkCard
         key={link.id}
         {...link}
         selected={selectedLink && selectedLink.id === link.id}
         onSelect={() => setSelectedLink(link)}
-        onDelete={allowDelete ? handleDelete : undefined}
+        onDelete={() => handleDelete(link.id)}
         onTagSelect={handleTagSelect}
       />
     )
@@ -226,4 +207,4 @@ function Explore() {
   )
 }
 
-export default Explore
+export default MyLinks
