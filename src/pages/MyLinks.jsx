@@ -5,11 +5,15 @@ import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
-import StatsPanel from '../components/StatsPanel.jsx'
 import NavTabs from '../components/NavTabs.jsx'
 import Sortable from 'sortablejs'
 
 const USER_ID_KEY = 'userUuid'
+
+const isPublic = import.meta.env.MODE === 'public'
+const StatsPanel = !isPublic
+  ? React.lazy(() => import('../components/StatsPanel.jsx'))
+  : null
 
 function generateItemId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
@@ -189,7 +193,11 @@ function MyLinks() {
       <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-start">
           <Header />
-          <StatsPanel links={links} />
+          {!isPublic && StatsPanel && (
+            <React.Suspense fallback={null}>
+              <StatsPanel links={links} />
+            </React.Suspense>
+          )}
         </div>
 
         <NavTabs />
