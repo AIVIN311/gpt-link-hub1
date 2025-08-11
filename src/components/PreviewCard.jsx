@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import PrimaryButton from './PrimaryButton'
 
 function PreviewCard({ title, description, summary, tags = [], url, onTagSelect }) {
   const [visible, setVisible] = useState(false)
@@ -35,14 +36,14 @@ function PreviewCard({ title, description, summary, tags = [], url, onTagSelect 
           </button>
         ))}
       </div>
-      <a
+      <PrimaryButton
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+        className="inline-block mt-2"
       >
         前往連結
-      </a>
+      </PrimaryButton>
     </div>
   )
 }
