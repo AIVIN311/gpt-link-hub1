@@ -1,9 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function UploadLinkBox({ onAdd }) {
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const handler = setTimeout(async () => {
+      if (!link.trim() && !title.trim()) {
+        setSuggestions([]);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/agent/tagger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: link.trim(), title: title.trim() }),
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        if (Array.isArray(data.tags)) {
+          setSuggestions(data.tags.map((tag) => ({ tag, selected: true })));
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+      controller.abort();
+    };
+  }, [link, title]);
 
   const handleSubmit = () => {
     if (!link.trim()) return;
@@ -13,16 +44,9 @@ export default function UploadLinkBox({ onAdd }) {
       .map((t) => t.trim())
       .filter((t) => t);
 
-    const keywordMap = {
-      GPT: 'ChatGPT',
-      AI: 'AI',
-      YouTube: '影音',
-    };
-
-    const text = `${title} ${link}`.toLowerCase();
-    Object.entries(keywordMap).forEach(([keyword, suggested]) => {
-      if (text.includes(keyword.toLowerCase()) && !tagList.includes(suggested)) {
-        tagList.push(suggested);
+    suggestions.forEach((s) => {
+      if (s.selected && !tagList.includes(s.tag)) {
+        tagList.push(s.tag);
       }
     });
 
@@ -36,6 +60,13 @@ export default function UploadLinkBox({ onAdd }) {
     setLink('');
     setTitle('');
     setTags('');
+    setSuggestions([]);
+  };
+
+  const toggleSuggestion = (index) => {
+    setSuggestions((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, selected: !s.selected } : s)),
+    );
   };
 
   return (
@@ -58,6 +89,24 @@ export default function UploadLinkBox({ onAdd }) {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+      {suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {suggestions.map((s, idx) => (
+            <button
+              key={s.tag}
+              type="button"
+              onClick={() => toggleSuggestion(idx)}
+              className={`px-2 py-1 rounded-full border text-sm ${
+                s.selected
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              {s.tag}
+            </button>
+          ))}
+        </div>
+      )}
       <button
         className="w-full bg-blue-500 text-white px-4 py-2 rounded"
         onClick={handleSubmit}
