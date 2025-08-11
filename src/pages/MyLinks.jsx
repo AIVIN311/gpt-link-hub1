@@ -48,15 +48,41 @@ function normalizeItem(data, userId) {
 function MyLinks() {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([])
+  const [tagCounts, setTagCounts] = useState({})
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
   const listRef = useRef(null)
 
   const availableTags = useMemo(
-    () => [...new Set(links.flatMap(l => l.tags))],
-    [links]
+    () => Object.keys(tagCounts),
+    [tagCounts]
   )
+
+  const buildTagCounts = items => {
+    const counts = {}
+    for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+    return counts
+  }
+
+  const increaseTagCounts = tags => {
+    setTagCounts(prev => {
+      const next = { ...prev }
+      for (const t of tags) next[t] = (next[t] || 0) + 1
+      return next
+    })
+  }
+
+  const decreaseTagCounts = tags => {
+    setTagCounts(prev => {
+      const next = { ...prev }
+      for (const t of tags) {
+        if (next[t] > 1) next[t] -= 1
+        else delete next[t]
+      }
+      return next
+    })
+  }
 
   // 初始化使用者 ID
   useEffect(() => {
@@ -115,6 +141,7 @@ function MyLinks() {
         localStorage.setItem('links', JSON.stringify(normalized))
       }
       setLinks(mine)
+      setTagCounts(buildTagCounts(mine))
     }
 
     const stored = localStorage.getItem('links')
@@ -148,6 +175,7 @@ function MyLinks() {
     }
     const item = { ...base, summary, createdAt: base.createdAt }
 
+    increaseTagCounts(item.tags)
     setLinks(prev => {
       const next = [...prev, item]
       const stored = localStorage.getItem('links')
@@ -160,10 +188,12 @@ function MyLinks() {
   // 刪除連結
   function handleDelete(id) {
     setLinks(prev => {
+      const target = prev.find(item => item.id === id)
       const next = prev.filter(item => item.id !== id)
       const stored = localStorage.getItem('links')
       const all = stored ? JSON.parse(stored).filter(l => l.id !== id) : []
       localStorage.setItem('links', JSON.stringify(all))
+      if (target) decreaseTagCounts(target.tags)
       return next
     })
     if (selectedLink?.id === id) setSelectedLink(null)
@@ -201,7 +231,7 @@ function MyLinks() {
           <Header />
           {!IS_PUBLIC && LazyStatsPanel && (
             <React.Suspense fallback={null}>
-              <LazyStatsPanel links={links} compact />
+              <LazyStatsPanel links={links} tagCounts={tagCounts} compact />
             </React.Suspense>
           )}
         </div>

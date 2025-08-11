@@ -43,10 +43,9 @@ export default function UploadLinkBox({ onAdd }) {
           uniq.push({ tag: key, selected: s.selected !== false });
         }
         setSuggestions(uniq);
-      } catch (err) {
+      } catch {
         // 靜默失敗：清空建議避免干擾使用者
         setSuggestions([]);
-        // console.error(err);
       }
     }, 500); // debounce
 
