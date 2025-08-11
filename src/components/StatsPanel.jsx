@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-function StatsPanel({ links = [], position = 'top-right' }) {
+function StatsPanel({ links = [], position = 'top-right', compact = false }) {
   const weeklyCount = useMemo(() => {
     const now = Date.now()
     const weekAgo = now - 7 * 24 * 60 * 60 * 1000
@@ -25,10 +25,19 @@ function StatsPanel({ links = [], position = 'top-right' }) {
       .slice(0, 5)
   }, [links])
 
-  const containerClasses =
-    position === 'footer'
-      ? 'bg-white shadow rounded p-4 w-full'
-      : 'bg-white shadow rounded p-4 md:w-64 md:ml-auto'
+  const containerClasses = compact
+    ? 'bg-white shadow rounded p-2 text-sm'
+    : position === 'footer'
+        ? 'bg-white shadow rounded p-4 w-full'
+        : 'bg-white shadow rounded p-4 md:w-64 md:ml-auto'
+
+  if (compact) {
+    return (
+      <div className={containerClasses}>
+        <p>本週新增數：{weeklyCount}</p>
+      </div>
+    )
+  }
 
   return (
     <div className={containerClasses}>

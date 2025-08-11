@@ -8,7 +8,7 @@ function Header() {
     }`
 
   return (
-    <nav className="flex justify-center gap-4">
+    <nav className="sticky top-0 bg-white flex justify-center gap-4">
       <NavLink to="/explore" className={tabClass}>
         Explore
       </NavLink>

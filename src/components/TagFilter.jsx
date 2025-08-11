@@ -12,23 +12,42 @@ function TagFilter({ tags = [], selected = [], onChange, mode = 'multi' }) {
     }
   }
 
+  const handleClear = () => {
+    if (onChange) onChange([])
+  }
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {tags.map((tag) => {
-        const active = selected.includes(tag)
-        return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <span data-testid="selected-count">已選擇 {selected.length} 個標籤</span>
+        {selected.length > 0 && (
           <button
-            key={tag}
             type="button"
-            onClick={() => handleClick(tag)}
-            className={`px-2 py-1 rounded text-sm ${
-              active ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800'
-            }`}
+            onClick={handleClear}
+            className="text-blue-500 text-sm"
+            data-testid="clear-selection"
           >
-            #{tag}
+            清除
           </button>
-        )
-      })}
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) => {
+          const active = selected.includes(tag)
+          return (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => handleClick(tag)}
+              className={`px-2 py-1 rounded text-sm ${
+                active ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800'
+              }`}
+            >
+              #{tag}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
