@@ -46,7 +46,6 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
       } catch {
         // 靜默失敗：清空建議避免干擾使用者
         setSuggestions([]);
-        // console.error(err)
       }
     }, 500); // debounce
 
