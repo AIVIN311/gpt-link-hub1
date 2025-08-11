@@ -18,15 +18,16 @@ function TagFilter({ tags = [], selected = [], onChange, mode = 'multi' }) {
 
   return (
     <div>
+      {/* 工具列：永遠顯示清除按鈕，無選取時灰化且不可點 */}
       <div className="flex items-center gap-2 mb-1">
-        <span data-testid="selected-count">已選擇 {selected.length} 個標籤</span>
+        <span data-testid="selected-count">已選 {selected.length} 個標籤</span>
         <button
           type="button"
           onClick={handleClear}
           className={`text-sm ${
             selected.length === 0
               ? 'text-gray-300 cursor-not-allowed'
-              : 'text-blue-500'
+              : 'text-blue-500 hover:underline'
           }`}
           data-testid="clear-selection"
           disabled={selected.length === 0}
@@ -34,6 +35,8 @@ function TagFilter({ tags = [], selected = [], onChange, mode = 'multi' }) {
           清除
         </button>
       </div>
+
+      {/* 標籤 chips */}
       <div className="flex flex-wrap gap-2 mt-1">
         {tags.map((tag) => {
           const active = selected.includes(tag)
@@ -56,3 +59,4 @@ function TagFilter({ tags = [], selected = [], onChange, mode = 'multi' }) {
 }
 
 export default TagFilter
+
