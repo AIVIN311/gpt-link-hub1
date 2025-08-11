@@ -3,6 +3,7 @@ import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
+import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
@@ -52,6 +53,7 @@ function Explore() {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([])
   const [selectedLink, setSelectedLink] = useState(null)
+  const [selectedTags, setSelectedTags] = useState([])
   const [userId, setUserId] = useState('')
 
   // ✨ 第一次載入時，初始化 userId
@@ -158,9 +160,32 @@ function Explore() {
         selected={selectedLink && selectedLink.id === link.id}
         onSelect={() => setSelectedLink(link)}
         onDelete={allowDelete ? handleDelete : undefined}
+        onTagSelect={handleTagSelect}
       />
     )
   }
+
+  function handleTagSelect(tag) {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  const filteredLinks =
+    selectedTags.length === 0
+      ? links
+      : links.filter((link) =>
+          selectedTags.every((tag) => link.tags.includes(tag))
+        )
+
+  useEffect(() => {
+    if (
+      selectedLink &&
+      selectedTags.some((tag) => !selectedLink.tags.includes(tag))
+    ) {
+      setSelectedLink(null)
+    }
+  }, [selectedTags, selectedLink])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -169,9 +194,10 @@ function Explore() {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
+            <TagFilter tags={selectedTags} onToggle={handleTagSelect} />
             <div className="space-y-6">
-              {links.length > 0 ? (
-                links.map((link) => renderListItem(link))
+              {filteredLinks.length > 0 ? (
+                filteredLinks.map((link) => renderListItem(link))
               ) : (
                 <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>
               )}
@@ -179,7 +205,7 @@ function Explore() {
           </div>
           <div className="w-full md:w-1/2 mt-6 md:mt-0">
             {selectedLink ? (
-              <PreviewCard {...selectedLink} />
+              <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
               <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
                 請選擇一個連結以預覽
