@@ -5,26 +5,32 @@ import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
-import NavTabs from '../components/NavTabs.jsx'
 import Sortable from 'sortablejs'
 
-const USER_ID_KEY = 'userUuid'
+// === 可見性旗標：MyLinks 視為個人頁（非公開）時才顯示統計 ===
+// 若之後要走環境變數，改成：const IS_PUBLIC = import.meta.env.VITE_PUBLIC_VIEW === 'true'
+const IS_PUBLIC = false
 
-const isPublic = import.meta.env.MODE === 'public'
-const StatsPanel = !isPublic
+// 只有在非公開模式才懶載入 StatsPanel
+const LazyStatsPanel = !IS_PUBLIC
   ? React.lazy(() => import('../components/StatsPanel.jsx'))
   : null
 
+const USER_ID_KEY = 'userUuid'
+
+// 產生唯一項目 ID
 function generateItemId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
+// 產生使用者 ID
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
+// 正規化每一筆資料結構
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
@@ -62,6 +68,7 @@ function MyLinks() {
     setUserId(uid)
   }, [])
 
+  // 啟用拖曳排序
   useEffect(() => {
     if (!listRef.current) return
     const sortable = new Sortable(listRef.current, {
@@ -87,9 +94,8 @@ function MyLinks() {
       let changed = false
       const normalized = await Promise.all(
         items.map(async (item) => {
-          let updated = normalizeItem(item, userId)
+          const updated = normalizeItem(item, userId)
           if (!item.createdAt) changed = true
-
           if (!updated.summary) {
             try {
               const result = await summarizer.run(updated.url)
@@ -193,25 +199,39 @@ function MyLinks() {
       <div className="container mx-auto px-4 space-y-6">
         <div className="flex justify-between items-start">
           <Header />
-          {!isPublic && StatsPanel && (
+          {!IS_PUBLIC && LazyStatsPanel && (
             <React.Suspense fallback={null}>
-              <StatsPanel links={links} />
+              <LazyStatsPanel links={links} compact />
             </React.Suspense>
           )}
         </div>
 
-        <NavTabs />
-
         <div className="flex flex-col md:flex-row gap-6">
-          <div className="w-full md:w-1/2 space-y-6">
+          <div className="w-full md:w-7/12 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
 
-            <TagFilter
-              tags={availableTags}
-              selected={selectedTags}
-              mode="multi"
-              onChange={setSelectedTags}
-            />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  已選 {selectedTags.length} 個
+                </span>
+                {selectedTags.length > 0 && (
+                  <button
+                    className="text-sm text-blue-500 hover:underline"
+                    onClick={() => setSelectedTags([])}
+                  >
+                    清除
+                  </button>
+                )}
+              </div>
+
+              <TagFilter
+                tags={availableTags}
+                selected={selectedTags}
+                mode="multi"
+                onChange={setSelectedTags}
+              />
+            </div>
 
             <div className="space-y-6" ref={listRef}>
               {filteredLinks.length > 0 ? (
@@ -222,7 +242,7 @@ function MyLinks() {
             </div>
           </div>
 
-          <div className="w-full md:w-1/2 mt-6 md:mt-0">
+          <div className="w-full md:w-5/12 md:sticky md:top-24 self-start mt-6 md:mt-0">
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
@@ -238,4 +258,5 @@ function MyLinks() {
 }
 
 export default MyLinks
+
 
