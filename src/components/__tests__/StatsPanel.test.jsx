@@ -7,7 +7,7 @@ describe('StatsPanel compact rendering', () => {
       { createdAt: new Date().toISOString(), tags: ['AI'] }
     ]
     render(<StatsPanel links={links} compact />)
-    expect(screen.getByText(/本週新增數/)).toBeInTheDocument()
+    expect(screen.getByText(/本週新增：/)).toBeInTheDocument()
     expect(screen.queryByText('統計資訊')).toBeNull()
   })
 })

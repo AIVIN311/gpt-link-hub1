@@ -9,8 +9,8 @@ describe('Header', () => {
         <Header />
       </MemoryRouter>
     )
-    const nav = screen.getByRole('navigation')
-    expect(nav).toHaveClass('sticky')
+    const header = screen.getByRole('banner')
+    expect(header).toHaveClass('sticky')
   })
 
   test('highlights active link', () => {
