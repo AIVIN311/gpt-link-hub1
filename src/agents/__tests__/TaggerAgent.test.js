@@ -6,7 +6,7 @@ describe('TaggerAgent', () => {
     const agent = new TaggerAgent()
     const { tags } = await agent.run('This GPT-based AI tool is on YouTube')
 
-    // 應該要回傳陣列，數量介於 1~7（預設 limit）
+    // 應該回傳陣列、數量合理
     expect(Array.isArray(tags)).toBe(true)
     expect(tags.length).toBeGreaterThan(0)
     expect(tags.length).toBeLessThanOrEqual(7)
@@ -17,12 +17,13 @@ describe('TaggerAgent', () => {
     expect(lower.has('youtube')).toBe(true)
   })
 
-  test('applies keywordMap normalization when provided', async () => {
-    const agent = new TaggerAgent({ keywordMap: { gpt: 'ChatGPT' } })
-    const { tags } = await agent.run('Gpt tricks on youtube')
+  test('applies keywordMap normalization when provided (gpt→ChatGPT, youtube→影音)', async () => {
+    const agent = new TaggerAgent({ keywordMap: { gpt: 'ChatGPT', youtube: '影音' } })
+    const { tags } = await agent.run('This GPT-based AI tool is on YouTube')
     const lower = new Set(tags.map(t => t.toLowerCase()))
-    // 映射後我們會標準化為小寫 → 'chatgpt'
+    // 英文會被小寫化：ChatGPT -> chatgpt；中文維持原樣：影音
     expect(lower.has('chatgpt')).toBe(true)
+    expect(tags).toContain('影音')
   })
 
   test('respects custom limit', async () => {
@@ -31,3 +32,4 @@ describe('TaggerAgent', () => {
     expect(tags.length).toBeLessThanOrEqual(3)
   })
 })
+

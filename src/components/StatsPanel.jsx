@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 
 function StatsPanel({
   links = [],
+  tagCounts = {},
   position = 'top-right',
   compact = false,
   hidden = false,
@@ -16,21 +17,12 @@ function StatsPanel({
 
   const totalCount = links.length
 
-  const uniqueTagCount = useMemo(() => {
-    const set = new Set()
-    for (const l of links) if (Array.isArray(l.tags)) for (const t of l.tags) set.add(t)
-    return set.size
-  }, [links])
+  const uniqueTagCount = useMemo(() => Object.keys(tagCounts).length, [tagCounts])
 
-  const topTags = useMemo(() => {
-    const counts = links.reduce((acc, l) => {
-      if (Array.isArray(l.tags)) {
-        for (const t of l.tags) acc[t] = (acc[t] || 0) + 1
-      }
-      return acc
-    }, {})
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5)
-  }, [links])
+  const topTags = useMemo(
+    () => Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
+    [tagCounts]
+  )
 
   // 位置樣式（僅完整版需要容器）
   const containerClasses = position === 'footer'

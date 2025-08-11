@@ -7,30 +7,26 @@ import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 import Sortable from 'sortablejs'
 
-// === 可見性旗標：MyLinks 視為個人頁（非公開）時才顯示統計 ===
-// 若之後要走環境變數，改成：const IS_PUBLIC = import.meta.env.VITE_PUBLIC_VIEW === 'true'
+// 視為個人頁（非公開）時才顯示統計；之後可改為環境變數
 const IS_PUBLIC = false
 
-// 只有在非公開模式才懶載入 StatsPanel
+// 非公開模式才懶載入 StatsPanel（減少 bundle 體積）
 const LazyStatsPanel = !IS_PUBLIC
   ? React.lazy(() => import('../components/StatsPanel.jsx'))
   : null
 
 const USER_ID_KEY = 'userUuid'
 
-// 產生唯一項目 ID
 function generateItemId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 產生使用者 ID
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 正規化每一筆資料結構
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
@@ -48,19 +44,40 @@ function normalizeItem(data, userId) {
 function MyLinks() {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([])
+  const [tagCounts, setTagCounts] = useState({})
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
-  const [showStats, setShowStats] = useState(() =>
-    localStorage.getItem('showStats') !== '0'
-  )
+  const [showStats, setShowStats] = useState(() => localStorage.getItem('showStats') !== '0')
   const listRef = useRef(null)
   const uploadRef = useRef(null)
 
-  const availableTags = useMemo(
-    () => [...new Set(links.flatMap(l => l.tags))],
-    [links]
-  )
+  const availableTags = useMemo(() => Object.keys(tagCounts), [tagCounts])
+
+  const buildTagCounts = (items) => {
+    const counts = {}
+    for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+    return counts
+  }
+
+  const increaseTagCounts = (tags) => {
+    setTagCounts(prev => {
+      const next = { ...prev }
+      for (const t of tags) next[t] = (next[t] || 0) + 1
+      return next
+    })
+  }
+
+  const decreaseTagCounts = (tags) => {
+    setTagCounts(prev => {
+      const next = { ...prev }
+      for (const t of tags) {
+        if (next[t] > 1) next[t] -= 1
+        else delete next[t]
+      }
+      return next
+    })
+  }
 
   // 初始化使用者 ID
   useEffect(() => {
@@ -72,7 +89,7 @@ function MyLinks() {
     setUserId(uid)
   }, [])
 
-  // 啟用拖曳排序
+  // 啟用拖曳排序（限定拖把 .drag-handle）
   useEffect(() => {
     if (!listRef.current) return
     const sortable = new Sortable(listRef.current, {
@@ -116,21 +133,17 @@ function MyLinks() {
       )
 
       const mine = normalized.filter(l => l.createdBy === userId)
-      if (changed || save) {
-        localStorage.setItem('links', JSON.stringify(normalized))
-      }
+      if (changed || save) localStorage.setItem('links', JSON.stringify(normalized))
       setLinks(mine)
+      setTagCounts(buildTagCounts(mine))
     }
 
     const stored = localStorage.getItem('links')
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          processItems(parsed)
-        } else {
-          setLinks([])
-        }
+        if (Array.isArray(parsed) && parsed.length > 0) processItems(parsed)
+        else setLinks([])
       } catch (e) {
         console.error('Failed to parse links from localStorage', e)
         setLinks([])
@@ -153,6 +166,7 @@ function MyLinks() {
     }
     const item = { ...base, summary, createdAt: base.createdAt }
 
+    increaseTagCounts(item.tags)
     setLinks(prev => {
       const next = [...prev, item]
       const stored = localStorage.getItem('links')
@@ -165,10 +179,12 @@ function MyLinks() {
   // 刪除連結
   function handleDelete(id) {
     setLinks(prev => {
+      const target = prev.find(item => item.id === id)
       const next = prev.filter(item => item.id !== id)
       const stored = localStorage.getItem('links')
       const all = stored ? JSON.parse(stored).filter(l => l.id !== id) : []
       localStorage.setItem('links', JSON.stringify(all))
+      if (target) decreaseTagCounts(target.tags)
       return next
     })
     if (selectedLink?.id === id) setSelectedLink(null)
@@ -176,11 +192,10 @@ function MyLinks() {
 
   // 點擊標籤 → 篩選
   function handleTagSelect(tag) {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    )
+    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
   }
 
+  // 顯示／隱藏統計（存偏好）
   function handleToggleStats() {
     setShowStats(prev => {
       const next = !prev
@@ -216,7 +231,8 @@ function MyLinks() {
             <div className="flex items-center gap-4">
               {showStats && LazyStatsPanel && (
                 <React.Suspense fallback={null}>
-                  <LazyStatsPanel links={links} compact />
+                  {/* 傳入 tagCounts 以便未來擴充；當前不使用也無妨 */}
+                  <LazyStatsPanel links={links} tagCounts={tagCounts} compact />
                 </React.Suspense>
               )}
               <button
@@ -260,7 +276,7 @@ function MyLinks() {
                 <button
                   type="button"
                   className="text-sm text-blue-500 hover:underline"
-                  onClick={() => uploadRef.current?.focus()}
+                  onClick={() => uploadRef.current?.focus?.()}
                 >
                   貼上連結
                 </button>
@@ -274,5 +290,6 @@ function MyLinks() {
 }
 
 export default MyLinks
+
 
 
