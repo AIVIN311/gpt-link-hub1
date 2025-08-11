@@ -10,7 +10,6 @@ function LinkCard({
   onSelect,
   onDelete,
   selected = false,
-  onTagSelect,
 }) {
   const displayTitle = title || '未命名'
   const displayTags = tags?.length > 0 ? tags : ['未分類']
@@ -54,17 +53,12 @@ function LinkCard({
       {/* 標籤 */}
       <div className="flex flex-wrap gap-2">
         {displayTags.map((tag) => (
-          <button
+          <span
             key={tag}
-            type="button"
             className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              onTagSelect?.(tag)
-            }}
           >
             #{tag}
-          </button>
+          </span>
         ))}
       </div>
 

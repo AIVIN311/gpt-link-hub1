@@ -53,7 +53,6 @@ function Explore() {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState([])
   const [selectedLink, setSelectedLink] = useState(null)
-  const [selectedTags, setSelectedTags] = useState([])
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
   const availableTags = useMemo(
@@ -165,32 +164,16 @@ function Explore() {
         selected={selectedLink && selectedLink.id === link.id}
         onSelect={() => setSelectedLink(link)}
         onDelete={allowDelete ? handleDelete : undefined}
-        onTagSelect={handleTagSelect}
       />
     )
   }
 
-  function handleTagSelect(tag) {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+  const filteredLinks = useMemo(() => {
+    if (selectedTags.length === 0) return links
+    return links.filter((link) =>
+      selectedTags.every((tag) => link.tags.includes(tag))
     )
-  }
-
-  const filteredLinks =
-    selectedTags.length === 0
-      ? links
-      : links.filter((link) =>
-          selectedTags.every((tag) => link.tags.includes(tag))
-        )
-
-  useEffect(() => {
-    if (
-      selectedLink &&
-      selectedTags.some((tag) => !selectedLink.tags.includes(tag))
-    ) {
-      setSelectedLink(null)
-    }
-  }, [selectedTags, selectedLink])
+  }, [links, selectedTags])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -199,7 +182,12 @@ function Explore() {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
-            <TagFilter tags={selectedTags} onToggle={handleTagSelect} />
+            <TagFilter
+              tags={availableTags}
+              selected={selectedTags}
+              mode="multi"
+              onChange={setSelectedTags}
+            />
             <div className="space-y-6">
               {filteredLinks.length > 0 ? (
                 filteredLinks.map((link) => renderListItem(link))
@@ -210,7 +198,7 @@ function Explore() {
           </div>
           <div className="w-full md:w-1/2 mt-6 md:mt-0">
             {selectedLink ? (
-              <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
+              <PreviewCard {...selectedLink} />
             ) : (
               <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
                 請選擇一個連結以預覽
