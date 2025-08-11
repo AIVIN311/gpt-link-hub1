@@ -3,6 +3,7 @@ import Header from '../components/Header.jsx'
 import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
+import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 const USER_ID_KEY = 'userUuid'
@@ -53,6 +54,11 @@ function Explore() {
   const [links, setLinks] = useState([])
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
+  const [selectedTags, setSelectedTags] = useState([])
+  const availableTags = useMemo(
+    () => [...new Set(links.flatMap((l) => l.tags))],
+    [links]
+  )
 
   // ✨ 第一次載入時，初始化 userId
   useEffect(() => {
@@ -162,6 +168,13 @@ function Explore() {
     )
   }
 
+  const filteredLinks = useMemo(() => {
+    if (selectedTags.length === 0) return links
+    return links.filter((link) =>
+      selectedTags.every((tag) => link.tags.includes(tag))
+    )
+  }, [links, selectedTags])
+
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
       <div className="container mx-auto px-4 space-y-6">
@@ -169,9 +182,15 @@ function Explore() {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-1/2 space-y-6">
             <UploadLinkBox onAdd={handleAdd} />
+            <TagFilter
+              tags={availableTags}
+              selected={selectedTags}
+              mode="multi"
+              onChange={setSelectedTags}
+            />
             <div className="space-y-6">
-              {links.length > 0 ? (
-                links.map((link) => renderListItem(link))
+              {filteredLinks.length > 0 ? (
+                filteredLinks.map((link) => renderListItem(link))
               ) : (
                 <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>
               )}
