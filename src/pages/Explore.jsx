@@ -154,6 +154,12 @@ function Explore() {
     }
   }
 
+  function handleTagSelect(tag) {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
   // 🧩 渲染每一筆連結卡片
   function renderListItem(link) {
     const allowDelete = link.createdBy === userId
@@ -164,6 +170,7 @@ function Explore() {
         selected={selectedLink && selectedLink.id === link.id}
         onSelect={() => setSelectedLink(link)}
         onDelete={allowDelete ? handleDelete : undefined}
+        onTagSelect={handleTagSelect}
       />
     )
   }
@@ -198,7 +205,7 @@ function Explore() {
           </div>
           <div className="w-full md:w-1/2 mt-6 md:mt-0">
             {selectedLink ? (
-              <PreviewCard {...selectedLink} />
+              <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
               <div className="bg-gray-100 text-gray-500 flex items-center justify-center h-full p-6 rounded">
                 請選擇一個連結以預覽
