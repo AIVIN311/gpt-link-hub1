@@ -3,76 +3,92 @@ import { useEffect, useState } from 'react';
 export default function UploadLinkBox({ onAdd }) {
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
-  const [tags, setTags] = useState('');
-  const [suggested, setSuggested] = useState([]);
+  const [tags, setTags] = useState(''); // 手動輸入（以逗號分隔）
+  const [suggestions, setSuggestions] = useState([]); // [{ tag, selected }]
 
   useEffect(() => {
-    const text = `${title} ${link}`.trim();
-    if (!text) {
-      setSuggested([]);
+    const url = link.trim();
+    const ttl = title.trim();
+
+    // 若沒有任何可分析文字，清空建議
+    if (!url && !ttl) {
+      setSuggestions([]);
       return;
     }
-    let ignore = false;
-    (async () => {
+
+    const controller = new AbortController();
+    const handler = setTimeout(async () => {
       try {
         const res = await fetch('/api/agent/tagger', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ url, title: ttl }),
+          signal: controller.signal,
         });
         const data = await res.json();
-        if (!ignore && Array.isArray(data.tags)) setSuggested(data.tags);
-      } catch {
-        if (!ignore) setSuggested([]);
+
+        // 兼容兩種回傳：string[] 或 {tag, selected}[]
+        const arr = Array.isArray(data?.tags) ? data.tags : [];
+        const normalized = arr.map((t) =>
+          typeof t === 'string' ? { tag: t, selected: true } : { tag: t.tag, selected: !!t.selected }
+        );
+
+        // 去重並保留選取狀態（預設選取）
+        const seen = new Set();
+        const uniq = [];
+        for (const s of normalized) {
+          const key = (s.tag || '').trim();
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          uniq.push({ tag: key, selected: s.selected !== false });
+        }
+        setSuggestions(uniq);
+      } catch (err) {
+        // 靜默失敗：清空建議避免干擾使用者
+        setSuggestions([]);
+        // console.error(err);
       }
-    })();
+    }, 500); // debounce
+
     return () => {
-      ignore = true;
+      clearTimeout(handler);
+      controller.abort();
     };
   }, [link, title]);
 
-  const handleAddTag = (tag) => {
-    const current = tags
-      .split(',')
-      .map((t) => t.trim())
-      .filter((t) => t);
-    if (!current.includes(tag)) {
-      current.push(tag);
-      setTags(current.join(', '));
-    }
+  const toggleSuggestion = (index) => {
+    setSuggestions((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, selected: !s.selected } : s))
+    );
   };
 
   const handleSubmit = () => {
-    if (!link.trim()) return;
+    const url = link.trim();
+    if (!url) return;
 
-    const tagList = tags
+    // 手動標籤：逗號分隔 → 去頭尾空白 → 過濾空字串
+    const manual = tags
       .split(',')
       .map((t) => t.trim())
       .filter((t) => t);
 
-    const keywordMap = {
-      GPT: 'ChatGPT',
-      AI: 'AI',
-      YouTube: '影音',
-    };
-
-    const text = `${title} ${link}`.toLowerCase();
-    Object.entries(keywordMap).forEach(([keyword, suggested]) => {
-      if (text.includes(keyword.toLowerCase()) && !tagList.includes(suggested)) {
-        tagList.push(suggested);
-      }
-    });
+    // 合併已選建議標籤
+    const merged = [...manual];
+    for (const s of suggestions) {
+      if (s.selected && s.tag && !merged.includes(s.tag)) merged.push(s.tag);
+    }
 
     onAdd({
-      url: link.trim(),
+      url,
       title: title.trim(),
-      tags: tagList,
+      tags: merged,
     });
 
-    // 清空欄位
+    // 重置表單
     setLink('');
     setTitle('');
     setTags('');
+    setSuggestions([]);
   };
 
   return (
@@ -95,20 +111,50 @@ export default function UploadLinkBox({ onAdd }) {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
-      {suggested.length > 0 && (
-        <div data-testid="suggested-tags" className="flex flex-wrap gap-2">
-          {suggested.map((tag) => (
-            <button
-              type="button"
-              key={tag}
-              className="bg-gray-200 text-sm px-2 py-1 rounded"
-              onClick={() => handleAddTag(tag)}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
+
+      {suggestions.length > 0 && (
+        <>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-500">建議標籤（可點選加入/取消）</span>
+            <div className="space-x-2">
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:underline"
+                onClick={() =>
+                  setSuggestions((prev) => prev.map((s) => ({ ...s, selected: true })))
+                }
+              >
+                全部加入
+              </button>
+              <button
+                type="button"
+                className="text-sm text-gray-500 hover:underline"
+                onClick={() =>
+                  setSuggestions((prev) => prev.map((s) => ({ ...s, selected: false })))
+                }
+              >
+                全部取消
+              </button>
+            </div>
+          </div>
+
+          <div data-testid="suggested-tags" className="flex flex-wrap gap-2">
+            {suggestions.map((s, idx) => (
+              <button
+                key={s.tag}
+                type="button"
+                onClick={() => toggleSuggestion(idx)}
+                className={`px-2 py-1 rounded-full border text-sm ${
+                  s.selected ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+                }`}
+              >
+                {s.tag}
+              </button>
+            ))}
+          </div>
+        </>
       )}
+
       <button
         className="w-full bg-blue-500 text-white px-4 py-2 rounded"
         onClick={handleSubmit}
@@ -118,3 +164,4 @@ export default function UploadLinkBox({ onAdd }) {
     </div>
   );
 }
+
