@@ -37,5 +37,38 @@ describe('UploadLinkBox tag suggestions', () => {
       expect(aiButton).toHaveClass('bg-gray-200')
     })
   })
+
+  test('selecting and clearing classification chips sends classify field', () => {
+    const onAdd = vi.fn()
+    render(<UploadLinkBox onAdd={onAdd} />)
+
+    fireEvent.change(
+      screen.getByPlaceholderText('貼上公開分享連結'),
+      { target: { value: 'http://example.com' } }
+    )
+
+    // select tone/theme/emotion
+    fireEvent.click(screen.getByText('理性'))
+    fireEvent.click(screen.getByText('科技'))
+    fireEvent.click(screen.getByText('開心'))
+
+    fireEvent.click(screen.getByText('新增'))
+    expect(onAdd).toHaveBeenLastCalledWith(
+      expect.objectContaining({ classify: { tone: '理性', theme: '科技', emotion: '開心' } })
+    )
+
+    // second submission with tone cleared
+    fireEvent.change(
+      screen.getByPlaceholderText('貼上公開分享連結'),
+      { target: { value: 'http://example2.com' } }
+    )
+    const toneChip = screen.getByText('理性')
+    fireEvent.click(toneChip) // select
+    fireEvent.click(toneChip) // clear
+    fireEvent.click(screen.getByText('新增'))
+    expect(onAdd).toHaveBeenLastCalledWith(
+      expect.objectContaining({ classify: { tone: null, theme: null, emotion: null } })
+    )
+  })
 })
 

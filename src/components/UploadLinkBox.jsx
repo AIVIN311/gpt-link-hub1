@@ -5,6 +5,15 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState(''); // 手動輸入（以逗號分隔）
   const [suggestions, setSuggestions] = useState([]); // [{ tag, selected }]
+  const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null });
+
+  const tones = ['理性', '感性'];
+  const themes = ['科技', '生活'];
+  const emotions = ['開心', '難過'];
+
+  const toggleClassify = (field, value) => {
+    setClassify((prev) => ({ ...prev, [field]: prev[field] === value ? null : value }));
+  };
 
   useEffect(() => {
     const url = link.trim();
@@ -81,6 +90,7 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
       url,
       title: title.trim(),
       tags: merged,
+      classify,
     });
 
     // 重置表單
@@ -88,6 +98,7 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
     setTitle('');
     setTags('');
     setSuggestions([]);
+    setClassify({ tone: null, theme: null, emotion: null });
   };
 
   return (
@@ -111,6 +122,52 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+
+      {/* 分類選擇 chips */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2" data-testid="tone-chips">
+          {tones.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`px-2 py-1 rounded-full border text-sm ${
+                classify.tone === t ? 'bg-green-500 text-white border-green-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+              onClick={() => toggleClassify('tone', t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2" data-testid="theme-chips">
+          {themes.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`px-2 py-1 rounded-full border text-sm ${
+                classify.theme === t ? 'bg-green-500 text-white border-green-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+              onClick={() => toggleClassify('theme', t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2" data-testid="emotion-chips">
+          {emotions.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`px-2 py-1 rounded-full border text-sm ${
+                classify.emotion === t ? 'bg-green-500 text-white border-green-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+              onClick={() => toggleClassify('emotion', t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {suggestions.length > 0 && (
         <>
