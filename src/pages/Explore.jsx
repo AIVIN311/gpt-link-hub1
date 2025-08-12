@@ -49,7 +49,7 @@ function normalizeItem(data, userId) {
     description: data.description || '',
     createdBy: data.createdBy || userId,
     createdAt: data.createdAt || new Date().toISOString(),
-    summary: data.summary, // 若已有摘要則沿用
+    summary: data.summary,
   }
 }
 

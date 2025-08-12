@@ -298,7 +298,7 @@ function MyLinks({
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
-              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify中心 h-full p-6 rounded">
+              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify-center h-full p-6 rounded">
                 <p className="mb-2">請選擇一個連結以預覽</p>
                 <button
                   type="button"
@@ -317,6 +317,7 @@ function MyLinks({
 }
 
 export default MyLinks
+
 
 
 
