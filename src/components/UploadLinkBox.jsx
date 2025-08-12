@@ -1,10 +1,14 @@
 import { useEffect, useState, forwardRef } from 'react';
+import { TONE_OPTIONS, THEME_OPTIONS, EMOTION_OPTIONS } from '../constants.js';
 
-const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
+const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd, toneOptions = TONE_OPTIONS, themeOptions = THEME_OPTIONS, emotionOptions = EMOTION_OPTIONS }, ref) {
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState(''); // 手動輸入（以逗號分隔）
   const [suggestions, setSuggestions] = useState([]); // [{ tag, selected }]
+  const [tone, setTone] = useState('')
+  const [theme, setTheme] = useState('')
+  const [emotion, setEmotion] = useState('')
 
   useEffect(() => {
     const url = link.trim();
@@ -81,6 +85,9 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
       url,
       title: title.trim(),
       tags: merged,
+      tone,
+      theme,
+      emotion,
     });
 
     // 重置表單
@@ -88,6 +95,9 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
     setTitle('');
     setTags('');
     setSuggestions([]);
+    setTone('')
+    setTheme('')
+    setEmotion('')
   };
 
   return (
@@ -111,6 +121,37 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+
+      <select
+        className="w-full bg-black text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={tone}
+        onChange={(e) => setTone(e.target.value)}
+      >
+        <option value="">選擇語氣</option>
+        {toneOptions.map((t) => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
+      <select
+        className="w-full bg-black text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={theme}
+        onChange={(e) => setTheme(e.target.value)}
+      >
+        <option value="">選擇主題</option>
+        {themeOptions.map((t) => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
+      <select
+        className="w-full bg-black text-white border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={emotion}
+        onChange={(e) => setEmotion(e.target.value)}
+      >
+        <option value="">選擇情緒</option>
+        {emotionOptions.map((t) => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
 
       {suggestions.length > 0 && (
         <>

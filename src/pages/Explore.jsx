@@ -4,7 +4,9 @@ import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
+import ClassifyFilter from '../components/ClassifyFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
+import { TONE_OPTIONS, THEME_OPTIONS, EMOTION_OPTIONS } from '../constants.js'
 
 // === 可見性旗標：公開視圖不顯示統計（之後要改可從環境變數或設定注入）===
 const IS_PUBLIC = true
@@ -40,6 +42,9 @@ function normalizeItem(data, userId) {
     url: data.url || data.link,
     title: data.title || '未命名',
     tags: Array.isArray(data.tags) ? data.tags : [],
+    tone: data.tone || '',
+    theme: data.theme || '',
+    emotion: data.emotion || '',
     platform: data.platform || 'Unknown',
     language: data.language || 'unknown',
     description: data.description || '',
@@ -55,6 +60,9 @@ function Explore() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const [selectedThemes, setSelectedThemes] = useState([])
+  const [selectedTones, setSelectedTones] = useState([])
+  const [selectedEmotions, setSelectedEmotions] = useState([])
   const uploadRef = useRef(null)
 
   const availableTags = useMemo(
@@ -193,9 +201,14 @@ function Explore() {
   }
 
   const filteredLinks = useMemo(() => {
-    if (selectedTags.length === 0) return links
-    return links.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
-  }, [links, selectedTags])
+    return links.filter(link => {
+      if (selectedTags.length > 0 && !selectedTags.every(tag => link.tags.includes(tag))) return false
+      if (selectedThemes.length > 0 && !selectedThemes.includes(link.theme)) return false
+      if (selectedTones.length > 0 && !selectedTones.includes(link.tone)) return false
+      if (selectedEmotions.length > 0 && !selectedEmotions.includes(link.emotion)) return false
+      return true
+    })
+  }, [links, selectedTags, selectedThemes, selectedTones, selectedEmotions])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -211,9 +224,26 @@ function Explore() {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-7/12 space-y-6">
-            <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
+            <UploadLinkBox
+              onAdd={handleAdd}
+              ref={uploadRef}
+              toneOptions={TONE_OPTIONS}
+              themeOptions={THEME_OPTIONS}
+              emotionOptions={EMOTION_OPTIONS}
+            />
 
-            <div className="mt-2">
+            <div className="mt-2 space-y-4">
+              <ClassifyFilter
+                toneOptions={TONE_OPTIONS}
+                themeOptions={THEME_OPTIONS}
+                emotionOptions={EMOTION_OPTIONS}
+                selectedTones={selectedTones}
+                selectedThemes={selectedThemes}
+                selectedEmotions={selectedEmotions}
+                onTonesChange={setSelectedTones}
+                onThemesChange={setSelectedThemes}
+                onEmotionsChange={setSelectedEmotions}
+              />
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
