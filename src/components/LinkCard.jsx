@@ -5,6 +5,9 @@ function LinkCard({
   id,
   title,
   description,
+  tone,
+  theme,
+  emotion,
   summary,
   tags = [],
   url,
@@ -53,6 +56,27 @@ function LinkCard({
         <p className="text-gray-700 whitespace-pre-line">
           {cleanText(description)}
         </p>
+      )}
+
+      {/* Tone / Theme / Emotion */}
+      {(tone || theme || emotion) && (
+        <div className="flex flex-wrap gap-2">
+          {tone && (
+            <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-sm">
+              {tone}
+            </span>
+          )}
+          {theme && (
+            <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-sm">
+              {theme}
+            </span>
+          )}
+          {emotion && (
+            <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-sm">
+              {emotion}
+            </span>
+          )}
+        </div>
       )}
 
       {/* 標籤 */}
