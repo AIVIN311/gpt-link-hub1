@@ -123,20 +123,7 @@ function MyLinks({
       let changed = false
       const normalized = await Promise.all(
         items.map(async (item) => {
-          const updated = normalizeItem(item, userId)
-          // 補齊新欄位預設
-          if (item.tone === undefined) {
-            updated.tone = null
-            changed = true
-          }
-          if (item.theme === undefined) {
-            updated.theme = null
-            changed = true
-          }
-          if (item.emotion === undefined) {
-            updated.emotion = null
-            changed = true
-          }
+          const updated = normalizeItem(item, userId) // 內含 tone/theme/emotion ?? null
           if (!item.createdAt) changed = true
 
           if (!updated.summary) {
@@ -177,7 +164,7 @@ function MyLinks({
 
   // 新增連結
   async function handleAdd(data) {
-    const base = normalizeItem(data, userId) // 內含 tone/theme/emotion
+    const base = normalizeItem(data, userId)
     let summary = ''
     try {
       const result = await summarizer.run(base.url)
@@ -311,7 +298,7 @@ function MyLinks({
             {selectedLink ? (
               <PreviewCard {...selectedLink} onTagSelect={handleTagSelect} />
             ) : (
-              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify-center h-full p-6 rounded">
+              <div className="bg-gray-100 text-gray-500 flex flex-col items-center justify中心 h-full p-6 rounded">
                 <p className="mb-2">請選擇一個連結以預覽</p>
                 <button
                   type="button"

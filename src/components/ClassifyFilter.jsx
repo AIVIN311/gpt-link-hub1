@@ -1,16 +1,32 @@
 import React from 'react'
 
-function ClassifyFilter({ toneOptions = [], themeOptions = [], emotionOptions = [], selectedTone, selectedTheme, selectedEmotion, onChange }) {
+function ClassifyFilter({
+  toneOptions = [],
+  themeOptions = [],
+  emotionOptions = [],
+  selectedTone,
+  selectedTheme,
+  selectedEmotion,
+  onChange,
+}) {
   const handleSelect = (type, value) => {
     if (!onChange) return
-    const next = { tone: selectedTone, theme: selectedTheme, emotion: selectedEmotion }
+    const next = {
+      tone: selectedTone,
+      theme: selectedTheme,
+      emotion: selectedEmotion,
+    }
     next[type] = next[type] === value ? null : value
     onChange(next)
   }
 
   const handleClear = (type) => {
     if (!onChange) return
-    const next = { tone: selectedTone, theme: selectedTheme, emotion: selectedEmotion }
+    const next = {
+      tone: selectedTone,
+      theme: selectedTheme,
+      emotion: selectedEmotion,
+    }
     next[type] = null
     onChange(next)
   }
@@ -22,21 +38,29 @@ function ClassifyFilter({ toneOptions = [], themeOptions = [], emotionOptions = 
         <button
           type="button"
           onClick={() => handleClear(type)}
-          className={`text-sm ${selectedValue ? 'text-blue-500 hover:underline' : 'text-gray-300 cursor-not-allowed'}`}
+          className={`text-sm ${
+            selectedValue
+              ? 'text-blue-500 hover:underline'
+              : 'text-gray-300 cursor-not-allowed'
+          }`}
           disabled={!selectedValue}
         >
           清除
         </button>
       </div>
       <div className="flex flex-wrap gap-2 mt-1">
-        {options.map(opt => {
+        {options.map((opt) => {
           const active = selectedValue === opt
           return (
             <button
               key={opt}
               type="button"
               onClick={() => handleSelect(type, opt)}
-              className={`px-2 py-1 rounded text-sm ${active ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800'}`}
+              className={`px-2 py-1 rounded text-sm ${
+                active
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-blue-100 text-blue-800'
+              }`}
             >
               {opt}
             </button>

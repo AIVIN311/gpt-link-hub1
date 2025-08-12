@@ -4,10 +4,10 @@ import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
-import SummarizerAgent from '../agents/SummarizerAgent.js'
 import ClassifyFilter from '../components/ClassifyFilter.jsx'
+import SummarizerAgent from '../agents/SummarizerAgent.js'
 
-// === 可見性旗標：公開視圖不顯示統計（之後要改可從環境變數或設定注入）===
+// === 可見性旗標：公開視圖不顯示統計（之後可由環境變數控制）===
 const IS_PUBLIC = true
 
 // 只有在非公開模式才懶載入 StatsPanel，避免多餘 bundle
@@ -34,24 +34,22 @@ function generateUserId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 正規化資料
+// 正規化資料（分類欄位一律以 null 作為無值）
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
     url: data.url || data.link,
     title: data.title || '未命名',
     tags: Array.isArray(data.tags) ? data.tags : [],
-    tone: data.tone || '',
-    theme: data.theme || '',
-    emotion: data.emotion || '',
-    platform: data.platform || 'Unknown',
-    language: data.language || 'unknown',
-    description: data.description || '',
     tone: data.tone ?? null,
     theme: data.theme ?? null,
     emotion: data.emotion ?? null,
+    platform: data.platform || 'Unknown',
+    language: data.language || 'unknown',
+    description: data.description || '',
     createdBy: data.createdBy || userId,
     createdAt: data.createdAt || new Date().toISOString(),
+    summary: data.summary, // 若已有摘要則沿用
   }
 }
 
@@ -65,21 +63,29 @@ function Explore() {
   const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null })
   const uploadRef = useRef(null)
 
-  const availableTags = useMemo(
-    () => Object.keys(tagCounts),
-    [tagCounts]
+  const availableTags = useMemo(() => Object.keys(tagCounts), [tagCounts])
+  const toneOptions = useMemo(
+    () => Array.from(new Set(links.map(l => l.tone).filter(Boolean))),
+    [links]
   )
-  const toneOptions = useMemo(() => Array.from(new Set(links.map(l => l.tone).filter(Boolean))), [links])
-  const themeOptions = useMemo(() => Array.from(new Set(links.map(l => l.theme).filter(Boolean))), [links])
-  const emotionOptions = useMemo(() => Array.from(new Set(links.map(l => l.emotion).filter(Boolean))), [links])
+  const themeOptions = useMemo(
+    () => Array.from(new Set(links.map(l => l.theme).filter(Boolean))),
+    [links]
+  )
+  const emotionOptions = useMemo(
+    () => Array.from(new Set(links.map(l => l.emotion).filter(Boolean))),
+    [links]
+  )
 
   const buildTagCounts = items => {
     const counts = {}
-    for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+    for (const l of items) {
+      if (Array.isArray(l.tags)) {
+        for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+      }
+    }
     return counts
   }
-
-  // TODO: add tone/theme/emotion counts when classification is enabled
 
   const increaseTagCounts = tags => {
     setTagCounts(prev => {
@@ -119,10 +125,7 @@ function Explore() {
       const normalized = await Promise.all(
         items.map(async (item) => {
           const updated = normalizeItem(item, userId)
-          if (item.tone === undefined) { updated.tone = null; changed = true }
-          if (item.theme === undefined) { updated.theme = null; changed = true }
-          if (item.emotion === undefined) { updated.emotion = null; changed = true }
-          if (!item.createdAt) changed = true
+          if (!item?.createdAt) changed = true
           if (!updated.summary) {
             try {
               const result = await summarizer.run(updated.url)
@@ -135,6 +138,7 @@ function Explore() {
           return updated
         })
       )
+
       if (changed || save) localStorage.setItem('links', JSON.stringify(normalized))
       setLinks(normalized)
       setTagCounts(buildTagCounts(normalized))
@@ -157,7 +161,6 @@ function Explore() {
 
   // 新增連結
   async function handleAdd(data) {
-    // tone/theme/emotion are passed through normalizeItem and persisted
     const base = normalizeItem(data, userId)
     let summary = ''
     try {
@@ -211,7 +214,9 @@ function Explore() {
 
   const filteredLinks = useMemo(() => {
     return links.filter(link => {
-      const tagMatch = selectedTags.every(tag => link.tags.includes(tag))
+      const tagMatch =
+        selectedTags.length === 0 ||
+        selectedTags.every(tag => link.tags.includes(tag))
       const toneMatch = !classify.tone || link.tone === classify.tone
       const themeMatch = !classify.theme || link.theme === classify.theme
       const emotionMatch = !classify.emotion || link.emotion === classify.emotion
@@ -270,7 +275,7 @@ function Explore() {
                   <button
                     type="button"
                     className="text-sm text-blue-500 hover:underline"
-                    onClick={() => uploadRef.current?.focus()}
+                    onClick={() => uploadRef.current?.focus?.()}
                   >
                     貼上連結
                   </button>
@@ -284,4 +289,5 @@ function Explore() {
 }
 
 export default Explore
+
 
