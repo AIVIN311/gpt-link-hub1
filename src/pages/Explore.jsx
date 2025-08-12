@@ -4,6 +4,7 @@ import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
+import ClassificationFilter from '../components/ClassificationFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 
 // === 可見性旗標：公開視圖不顯示統計（之後要改可從環境變數或設定注入）===
@@ -55,11 +56,23 @@ function Explore() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const [selectedPlatform, setSelectedPlatform] = useState('')
+  const [selectedLanguage, setSelectedLanguage] = useState('')
   const uploadRef = useRef(null)
 
   const availableTags = useMemo(
     () => Object.keys(tagCounts),
     [tagCounts]
+  )
+
+  const availablePlatforms = useMemo(
+    () => Array.from(new Set(links.map((l) => l.platform))),
+    [links]
+  )
+
+  const availableLanguages = useMemo(
+    () => Array.from(new Set(links.map((l) => l.language))),
+    [links]
   )
 
   const buildTagCounts = items => {
@@ -193,9 +206,14 @@ function Explore() {
   }
 
   const filteredLinks = useMemo(() => {
-    if (selectedTags.length === 0) return links
-    return links.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
-  }, [links, selectedTags])
+    let result = links
+    if (selectedPlatform) result = result.filter(l => l.platform === selectedPlatform)
+    if (selectedLanguage) result = result.filter(l => l.language === selectedLanguage)
+    if (selectedTags.length > 0) {
+      result = result.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
+    }
+    return result
+  }, [links, selectedPlatform, selectedLanguage, selectedTags])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -213,7 +231,15 @@ function Explore() {
           <div className="w-full md:w-7/12 space-y-6">
             <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
+              <ClassificationFilter
+                platforms={availablePlatforms}
+                languages={availableLanguages}
+                selectedPlatform={selectedPlatform}
+                selectedLanguage={selectedLanguage}
+                onPlatformChange={setSelectedPlatform}
+                onLanguageChange={setSelectedLanguage}
+              />
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
