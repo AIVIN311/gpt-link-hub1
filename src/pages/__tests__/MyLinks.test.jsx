@@ -7,9 +7,9 @@ describe('MyLinks filtering', () => {
   test('filters by tone and tags with AND behaviour', () => {
     const user = 'user'
     const links = [
-      normalizeItem({ url: 'http://a', title: 'A', tags: ['t1'], classify: { tone: '理性' } }, user),
-      normalizeItem({ url: 'http://b', title: 'B', tags: ['t1'], classify: { tone: '感性' } }, user),
-      normalizeItem({ url: 'http://c', title: 'C', tags: ['t2'], classify: { tone: '理性' } }, user),
+      { ...normalizeItem({ url: 'http://a', title: 'A', tags: ['t1'] }, user), tone: '理性' },
+      { ...normalizeItem({ url: 'http://b', title: 'B', tags: ['t1'] }, user), tone: '感性' },
+      { ...normalizeItem({ url: 'http://c', title: 'C', tags: ['t2'] }, user), tone: '理性' },
     ]
 
     render(

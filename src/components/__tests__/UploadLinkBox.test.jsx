@@ -50,11 +50,11 @@ describe('UploadLinkBox tag suggestions', () => {
     // select tone/theme/emotion
     fireEvent.click(screen.getByText('理性'))
     fireEvent.click(screen.getByText('科技'))
-    fireEvent.click(screen.getByText('開心'))
+    fireEvent.click(screen.getByText('感動'))
 
     fireEvent.click(screen.getByText('新增'))
     expect(onAdd).toHaveBeenLastCalledWith(
-      expect.objectContaining({ classify: { tone: '理性', theme: '科技', emotion: '開心' } })
+      expect.objectContaining({ tone: '理性', theme: '科技', emotion: '感動' })
     )
 
     // second submission with tone cleared
@@ -67,7 +67,7 @@ describe('UploadLinkBox tag suggestions', () => {
     fireEvent.click(toneChip) // clear
     fireEvent.click(screen.getByText('新增'))
     expect(onAdd).toHaveBeenLastCalledWith(
-      expect.objectContaining({ classify: { tone: null, theme: null, emotion: null } })
+      expect.objectContaining({ tone: null, theme: null, emotion: null })
     )
   })
 })
