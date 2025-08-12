@@ -7,8 +7,9 @@ import TagFilter from '../components/TagFilter.jsx'
 import ClassifyFilter from '../components/ClassifyFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 import Sortable from 'sortablejs'
+import normalizeItem from '../utils/normalizeItem.js'
 
-// 視為個人頁（非公開）時才顯示統計；之後可改為環境變數
+// 視為個人頁（非公開）才顯示統計；之後可改環境變數
 const IS_PUBLIC = false
 
 // 非公開模式才懶載入 StatsPanel（減少 bundle 體積）
@@ -18,63 +19,56 @@ const LazyStatsPanel = !IS_PUBLIC
 
 const USER_ID_KEY = 'userUuid'
 
-function generateItemId() {
-  if (crypto?.randomUUID) return crypto.randomUUID()
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
-}
-
 function generateUserId() {
   if (crypto?.randomUUID) return crypto.randomUUID()
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-function normalizeItem(data, userId) {
-  return {
-    id: data.id || generateItemId(),
-    url: data.url || data.link,
-    title: data.title || '未命名',
-    tags: Array.isArray(data.tags) ? data.tags : [],
-    tone: data.tone || '',
-    theme: data.theme || '',
-    emotion: data.emotion || '',
-    platform: data.platform || 'Unknown',
-    language: data.language || 'unknown',
-    description: data.description || '',
-    tone: data.tone ?? null,
-    theme: data.theme ?? null,
-    emotion: data.emotion ?? null,
-    createdBy: data.createdBy || userId,
-    createdAt: data.createdAt || new Date().toISOString(),
+function buildTagCounts(items) {
+  const counts = {}
+  for (const l of items) {
+    if (Array.isArray(l.tags)) {
+      for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+    }
   }
+  return counts
 }
 
-function MyLinks() {
+function MyLinks({
+  initialLinks = null,
+  initialClassify = { tone: null, theme: null, emotion: null },
+}) {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
-  const [links, setLinks] = useState([])
-  const [tagCounts, setTagCounts] = useState({})
+  const [links, setLinks] = useState(initialLinks || [])
+  const [tagCounts, setTagCounts] = useState(() =>
+    initialLinks ? buildTagCounts(initialLinks) : {}
+  )
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
-  const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null })
-  const [showStats, setShowStats] = useState(() => localStorage.getItem('showStats') !== '0')
+  const [classify, setClassify] = useState(initialClassify)
+  const [showStats, setShowStats] = useState(
+    () => localStorage.getItem('showStats') !== '0'
+  )
   const listRef = useRef(null)
   const uploadRef = useRef(null)
 
   const availableTags = useMemo(() => Object.keys(tagCounts), [tagCounts])
-  const toneOptions = useMemo(() => Array.from(new Set(links.map(l => l.tone).filter(Boolean))), [links])
-  const themeOptions = useMemo(() => Array.from(new Set(links.map(l => l.theme).filter(Boolean))), [links])
-  const emotionOptions = useMemo(() => Array.from(new Set(links.map(l => l.emotion).filter(Boolean))), [links])
-
-  const buildTagCounts = (items) => {
-    const counts = {}
-    for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
-    return counts
-  }
-
-  // TODO: classification counts (tone/theme/emotion) can be added here later
+  const toneOptions = useMemo(
+    () => Array.from(new Set(links.map((l) => l.tone).filter(Boolean))),
+    [links]
+  )
+  const themeOptions = useMemo(
+    () => Array.from(new Set(links.map((l) => l.theme).filter(Boolean))),
+    [links]
+  )
+  const emotionOptions = useMemo(
+    () => Array.from(new Set(links.map((l) => l.emotion).filter(Boolean))),
+    [links]
+  )
 
   const increaseTagCounts = (tags) => {
-    setTagCounts(prev => {
+    setTagCounts((prev) => {
       const next = { ...prev }
       for (const t of tags) next[t] = (next[t] || 0) + 1
       return next
@@ -82,7 +76,7 @@ function MyLinks() {
   }
 
   const decreaseTagCounts = (tags) => {
-    setTagCounts(prev => {
+    setTagCounts((prev) => {
       const next = { ...prev }
       for (const t of tags) {
         if (next[t] > 1) next[t] -= 1
@@ -109,31 +103,42 @@ function MyLinks() {
       animation: 150,
       handle: '.drag-handle',
       onEnd: ({ oldIndex, newIndex }) => {
-        setLinks(prev => {
+        setLinks((prev) => {
           const updated = [...prev]
           const [moved] = updated.splice(oldIndex, 1)
           updated.splice(newIndex, 0, moved)
           localStorage.setItem('links', JSON.stringify(updated))
           return updated
         })
-      }
+      },
     })
     return () => sortable.destroy()
   }, [])
 
   // 載入/規範化/摘要化資料，並只保留自己建立的連結
   useEffect(() => {
-    if (!userId) return
+    if (!userId || initialLinks) return
 
     const processItems = async (items, save = false) => {
       let changed = false
       const normalized = await Promise.all(
         items.map(async (item) => {
           const updated = normalizeItem(item, userId)
-          if (item.tone === undefined) { updated.tone = null; changed = true }
-          if (item.theme === undefined) { updated.theme = null; changed = true }
-          if (item.emotion === undefined) { updated.emotion = null; changed = true }
+          // 補齊新欄位預設
+          if (item.tone === undefined) {
+            updated.tone = null
+            changed = true
+          }
+          if (item.theme === undefined) {
+            updated.theme = null
+            changed = true
+          }
+          if (item.emotion === undefined) {
+            updated.emotion = null
+            changed = true
+          }
           if (!item.createdAt) changed = true
+
           if (!updated.summary) {
             try {
               const result = await summarizer.run(updated.url)
@@ -148,8 +153,9 @@ function MyLinks() {
         })
       )
 
-      const mine = normalized.filter(l => l.createdBy === userId)
-      if (changed || save) localStorage.setItem('links', JSON.stringify(normalized))
+      const mine = normalized.filter((l) => l.createdBy === userId)
+      if (changed || save)
+        localStorage.setItem('links', JSON.stringify(normalized))
       setLinks(mine)
       setTagCounts(buildTagCounts(mine))
     }
@@ -167,12 +173,11 @@ function MyLinks() {
     } else {
       setLinks([])
     }
-  }, [userId, summarizer])
+  }, [userId, summarizer, initialLinks])
 
   // 新增連結
   async function handleAdd(data) {
-    // tone/theme/emotion are passed through normalizeItem and persisted
-    const base = normalizeItem(data, userId)
+    const base = normalizeItem(data, userId) // 內含 tone/theme/emotion
     let summary = ''
     try {
       const result = await summarizer.run(base.url)
@@ -184,7 +189,7 @@ function MyLinks() {
     const item = { ...base, summary, createdAt: base.createdAt }
 
     increaseTagCounts(item.tags)
-    setLinks(prev => {
+    setLinks((prev) => {
       const next = [...prev, item]
       const stored = localStorage.getItem('links')
       const all = stored ? JSON.parse(stored) : []
@@ -195,11 +200,11 @@ function MyLinks() {
 
   // 刪除連結
   function handleDelete(id) {
-    setLinks(prev => {
-      const target = prev.find(item => item.id === id)
-      const next = prev.filter(item => item.id !== id)
+    setLinks((prev) => {
+      const target = prev.find((item) => item.id === id)
+      const next = prev.filter((item) => item.id !== id)
       const stored = localStorage.getItem('links')
-      const all = stored ? JSON.parse(stored).filter(l => l.id !== id) : []
+      const all = stored ? JSON.parse(stored).filter((l) => l.id !== id) : []
       localStorage.setItem('links', JSON.stringify(all))
       if (target) decreaseTagCounts(target.tags)
       return next
@@ -209,12 +214,14 @@ function MyLinks() {
 
   // 點擊標籤 → 篩選
   function handleTagSelect(tag) {
-    setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
   }
 
   // 顯示／隱藏統計（存偏好）
   function handleToggleStats() {
-    setShowStats(prev => {
+    setShowStats((prev) => {
       const next = !prev
       localStorage.setItem('showStats', next ? '1' : '0')
       return next
@@ -235,8 +242,10 @@ function MyLinks() {
   }
 
   const filteredLinks = useMemo(() => {
-    return links.filter(link => {
-      const tagMatch = selectedTags.every(tag => link.tags.includes(tag))
+    return links.filter((link) => {
+      const tagMatch =
+        selectedTags.length === 0 ||
+        selectedTags.every((tag) => link.tags.includes(tag))
       const toneMatch = !classify.tone || link.tone === classify.tone
       const themeMatch = !classify.theme || link.theme === classify.theme
       const emotionMatch = !classify.emotion || link.emotion === classify.emotion
@@ -253,7 +262,6 @@ function MyLinks() {
             <div className="flex items-center gap-4">
               {showStats && LazyStatsPanel && (
                 <React.Suspense fallback={null}>
-                  {/* 傳入 tagCounts 以便未來擴充；當前不使用也無妨 */}
                   <LazyStatsPanel links={links} tagCounts={tagCounts} compact />
                 </React.Suspense>
               )}
@@ -271,7 +279,7 @@ function MyLinks() {
           <div className="w-full md:w-7/12 space-y-6">
             <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
-            <div className="mt-2">
+            <div className="mt-2 space-y-3">
               <ClassifyFilter
                 toneOptions={toneOptions}
                 themeOptions={themeOptions}
@@ -292,7 +300,7 @@ function MyLinks() {
 
             <div className="space-y-6" ref={listRef}>
               {filteredLinks.length > 0 ? (
-                filteredLinks.map(link => renderListItem(link))
+                filteredLinks.map((link) => renderListItem(link))
               ) : (
                 <p className="text-center text-gray-500">尚無連結，請貼上新網址</p>
               )}
@@ -322,6 +330,7 @@ function MyLinks() {
 }
 
 export default MyLinks
+
 
 
 
