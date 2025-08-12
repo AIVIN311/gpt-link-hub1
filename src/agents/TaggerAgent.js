@@ -26,16 +26,18 @@ export default class TaggerAgent {
   }
 
   /**
-   * 相容舊版：run('pure text')；新版：run({ title, description, summary, url, content, limit })
+   * 相容舊版：run('pure text')；新版：run({ title, description, summary, url, link, content, limit })
+   * `link` 為 `url` 的別名
    * 回傳：{ tags: string[] }
    */
   async run(input = {}) {
     // --- 參數歸一化 ---
-    let title = '', description = '', summary = '', url = '', content = '', limit
+    let title = '', description = '', summary = '', url = '', link = '', content = '', limit
     if (typeof input === 'string') {
       content = input
     } else {
-      ({ title = '', description = '', summary = '', url = '', content = '', limit } = input)
+      ({ title = '', description = '', summary = '', url = '', link = '', content = '', limit } = input)
+      url = url || link
     }
     const maxTags = Math.max(3, Math.min(Number(limit) || this.options.defaultLimit, 12))
 

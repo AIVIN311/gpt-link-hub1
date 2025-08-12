@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, test, vi } from 'vitest'
 import TaggerAgent from '../TaggerAgent.js'
 
 describe('TaggerAgent', () => {
@@ -30,6 +30,18 @@ describe('TaggerAgent', () => {
     const agent = new TaggerAgent()
     const { tags } = await agent.run({ content: 'react react prompt gpt youtube ai tool', limit: 3 })
     expect(tags.length).toBeLessThanOrEqual(3)
+  })
+
+  test('accepts link as alias for url when fetching content', async () => {
+    const html = '<div>GPT tool on YouTube</div>'
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = vi.fn().mockResolvedValue({ text: () => Promise.resolve(html) })
+    const agent = new TaggerAgent({ allowFetch: true })
+    const { tags } = await agent.run({ link: 'http://example.com/mock' })
+    const lower = new Set(tags.map(t => t.toLowerCase()))
+    expect(lower.has('gpt')).toBe(true)
+    expect(lower.has('youtube')).toBe(true)
+    globalThis.fetch = originalFetch
   })
 })
 
