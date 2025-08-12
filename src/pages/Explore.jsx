@@ -6,9 +6,8 @@ import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import ClassifyFilter from '../components/ClassifyFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
-import { TONE_OPTIONS, THEME_OPTIONS, EMOTION_OPTIONS } from '../constants.js'
 
-// === 可見性旗標：公開視圖不顯示統計（之後要改可從環境變數或設定注入）===
+// === 可見性旗標：公開視圖不顯示統計（之後可由環境變數控制）===
 const IS_PUBLIC = true
 
 // 只有在非公開模式才懶載入 StatsPanel，避免多餘 bundle
@@ -35,21 +34,22 @@ function generateUserId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
-// 正規化資料
+// 正規化資料（分類欄位一律以 null 作為無值）
 function normalizeItem(data, userId) {
   return {
     id: data.id || generateItemId(),
     url: data.url || data.link,
     title: data.title || '未命名',
     tags: Array.isArray(data.tags) ? data.tags : [],
-    tone: data.tone || '',
-    theme: data.theme || '',
-    emotion: data.emotion || '',
+    tone: data.tone ?? null,
+    theme: data.theme ?? null,
+    emotion: data.emotion ?? null,
     platform: data.platform || 'Unknown',
     language: data.language || 'unknown',
     description: data.description || '',
     createdBy: data.createdBy || userId,
     createdAt: data.createdAt || new Date().toISOString(),
+    summary: data.summary, // 若已有摘要則沿用
   }
 }
 
@@ -60,19 +60,30 @@ function Explore() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
-  const [selectedThemes, setSelectedThemes] = useState([])
-  const [selectedTones, setSelectedTones] = useState([])
-  const [selectedEmotions, setSelectedEmotions] = useState([])
+  const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null })
   const uploadRef = useRef(null)
 
-  const availableTags = useMemo(
-    () => Object.keys(tagCounts),
-    [tagCounts]
+  const availableTags = useMemo(() => Object.keys(tagCounts), [tagCounts])
+  const toneOptions = useMemo(
+    () => Array.from(new Set(links.map(l => l.tone).filter(Boolean))),
+    [links]
+  )
+  const themeOptions = useMemo(
+    () => Array.from(new Set(links.map(l => l.theme).filter(Boolean))),
+    [links]
+  )
+  const emotionOptions = useMemo(
+    () => Array.from(new Set(links.map(l => l.emotion).filter(Boolean))),
+    [links]
   )
 
   const buildTagCounts = items => {
     const counts = {}
-    for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+    for (const l of items) {
+      if (Array.isArray(l.tags)) {
+        for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
+      }
+    }
     return counts
   }
 
@@ -114,7 +125,7 @@ function Explore() {
       const normalized = await Promise.all(
         items.map(async (item) => {
           const updated = normalizeItem(item, userId)
-          if (!item.createdAt) changed = true
+          if (!item?.createdAt) changed = true
           if (!updated.summary) {
             try {
               const result = await summarizer.run(updated.url)
@@ -127,6 +138,7 @@ function Explore() {
           return updated
         })
       )
+
       if (changed || save) localStorage.setItem('links', JSON.stringify(normalized))
       setLinks(normalized)
       setTagCounts(buildTagCounts(normalized))
@@ -202,13 +214,15 @@ function Explore() {
 
   const filteredLinks = useMemo(() => {
     return links.filter(link => {
-      if (selectedTags.length > 0 && !selectedTags.every(tag => link.tags.includes(tag))) return false
-      if (selectedThemes.length > 0 && !selectedThemes.includes(link.theme)) return false
-      if (selectedTones.length > 0 && !selectedTones.includes(link.tone)) return false
-      if (selectedEmotions.length > 0 && !selectedEmotions.includes(link.emotion)) return false
-      return true
+      const tagMatch =
+        selectedTags.length === 0 ||
+        selectedTags.every(tag => link.tags.includes(tag))
+      const toneMatch = !classify.tone || link.tone === classify.tone
+      const themeMatch = !classify.theme || link.theme === classify.theme
+      const emotionMatch = !classify.emotion || link.emotion === classify.emotion
+      return tagMatch && toneMatch && themeMatch && emotionMatch
     })
-  }, [links, selectedTags, selectedThemes, selectedTones, selectedEmotions])
+  }, [links, selectedTags, classify])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -224,26 +238,19 @@ function Explore() {
 
         <div className="flex flex-col md:flex-row gap-6">
           <div className="w-full md:w-7/12 space-y-6">
-            <UploadLinkBox
-              onAdd={handleAdd}
-              ref={uploadRef}
-              toneOptions={TONE_OPTIONS}
-              themeOptions={THEME_OPTIONS}
-              emotionOptions={EMOTION_OPTIONS}
-            />
+            <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
-            <div className="mt-2 space-y-4">
+            <div className="mt-2">
               <ClassifyFilter
-                toneOptions={TONE_OPTIONS}
-                themeOptions={THEME_OPTIONS}
-                emotionOptions={EMOTION_OPTIONS}
-                selectedTones={selectedTones}
-                selectedThemes={selectedThemes}
-                selectedEmotions={selectedEmotions}
-                onTonesChange={setSelectedTones}
-                onThemesChange={setSelectedThemes}
-                onEmotionsChange={setSelectedEmotions}
+                toneOptions={toneOptions}
+                themeOptions={themeOptions}
+                emotionOptions={emotionOptions}
+                selectedTone={classify.tone}
+                selectedTheme={classify.theme}
+                selectedEmotion={classify.emotion}
+                onChange={setClassify}
               />
+
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
@@ -268,7 +275,7 @@ function Explore() {
                   <button
                     type="button"
                     className="text-sm text-blue-500 hover:underline"
-                    onClick={() => uploadRef.current?.focus()}
+                    onClick={() => uploadRef.current?.focus?.()}
                   >
                     貼上連結
                   </button>
@@ -282,4 +289,5 @@ function Explore() {
 }
 
 export default Explore
+
 
