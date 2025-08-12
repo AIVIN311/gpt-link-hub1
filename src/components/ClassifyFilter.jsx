@@ -20,33 +20,10 @@ function ClassifyFilter({
     onChange(next)
   }
 
-  const handleClear = (type) => {
-    if (!onChange) return
-    const next = {
-      tone: selectedTone,
-      theme: selectedTheme,
-      emotion: selectedEmotion,
-    }
-    next[type] = null
-    onChange(next)
-  }
-
   const renderGroup = (label, options, selectedValue, type) => (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-1">
         <span>{label}</span>
-        <button
-          type="button"
-          onClick={() => handleClear(type)}
-          className={`text-sm ${
-            selectedValue
-              ? 'text-blue-500 hover:underline'
-              : 'text-gray-300 cursor-not-allowed'
-          }`}
-          disabled={!selectedValue}
-        >
-          清除
-        </button>
       </div>
       <div className="flex flex-wrap gap-2 mt-1">
         {options.map((opt) => {
