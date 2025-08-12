@@ -5,6 +5,7 @@ import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
+import ClassifyFilter from '../components/ClassifyFilter.jsx'
 
 // === 可見性旗標：公開視圖不顯示統計（之後要改可從環境變數或設定注入）===
 const IS_PUBLIC = true
@@ -58,12 +59,16 @@ function Explore() {
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
+  const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null })
   const uploadRef = useRef(null)
 
   const availableTags = useMemo(
     () => Object.keys(tagCounts),
     [tagCounts]
   )
+  const toneOptions = useMemo(() => Array.from(new Set(links.map(l => l.tone).filter(Boolean))), [links])
+  const themeOptions = useMemo(() => Array.from(new Set(links.map(l => l.theme).filter(Boolean))), [links])
+  const emotionOptions = useMemo(() => Array.from(new Set(links.map(l => l.emotion).filter(Boolean))), [links])
 
   const buildTagCounts = items => {
     const counts = {}
@@ -199,9 +204,14 @@ function Explore() {
   }
 
   const filteredLinks = useMemo(() => {
-    if (selectedTags.length === 0) return links
-    return links.filter(link => selectedTags.every(tag => link.tags.includes(tag)))
-  }, [links, selectedTags])
+    return links.filter(link => {
+      const tagMatch = selectedTags.every(tag => link.tags.includes(tag))
+      const toneMatch = !classify.tone || link.tone === classify.tone
+      const themeMatch = !classify.theme || link.theme === classify.theme
+      const emotionMatch = !classify.emotion || link.emotion === classify.emotion
+      return tagMatch && toneMatch && themeMatch && emotionMatch
+    })
+  }, [links, selectedTags, classify])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -220,6 +230,16 @@ function Explore() {
             <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
             <div className="mt-2">
+              <ClassifyFilter
+                toneOptions={toneOptions}
+                themeOptions={themeOptions}
+                emotionOptions={emotionOptions}
+                selectedTone={classify.tone}
+                selectedTheme={classify.theme}
+                selectedEmotion={classify.emotion}
+                onChange={setClassify}
+              />
+
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
