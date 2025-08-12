@@ -4,7 +4,6 @@ import UploadLinkBox from '../components/UploadLinkBox.jsx'
 import LinkCard from '../components/LinkCard.jsx'
 import PreviewCard from '../components/PreviewCard.jsx'
 import TagFilter from '../components/TagFilter.jsx'
-import ClassifyFilter from '../components/ClassifyFilter.jsx'
 import SummarizerAgent from '../agents/SummarizerAgent.js'
 import Sortable from 'sortablejs'
 import normalizeItem from '../utils/normalizeItem.js'
@@ -36,7 +35,6 @@ function buildTagCounts(items) {
 
 function MyLinks({
   initialLinks = null,
-  initialClassify = { tone: null, theme: null, emotion: null },
 }) {
   const summarizer = useMemo(() => new SummarizerAgent(), [])
   const [links, setLinks] = useState(initialLinks || [])
@@ -46,7 +44,6 @@ function MyLinks({
   const [selectedLink, setSelectedLink] = useState(null)
   const [userId, setUserId] = useState('')
   const [selectedTags, setSelectedTags] = useState([])
-  const [classify, setClassify] = useState(initialClassify)
   const [showStats, setShowStats] = useState(
     () => localStorage.getItem('showStats') !== '0'
   )
@@ -54,18 +51,6 @@ function MyLinks({
   const uploadRef = useRef(null)
 
   const availableTags = useMemo(() => Object.keys(tagCounts), [tagCounts])
-  const toneOptions = useMemo(
-    () => Array.from(new Set(links.map((l) => l.tone).filter(Boolean))),
-    [links]
-  )
-  const themeOptions = useMemo(
-    () => Array.from(new Set(links.map((l) => l.theme).filter(Boolean))),
-    [links]
-  )
-  const emotionOptions = useMemo(
-    () => Array.from(new Set(links.map((l) => l.emotion).filter(Boolean))),
-    [links]
-  )
 
   const increaseTagCounts = (tags) => {
     setTagCounts((prev) => {
@@ -233,12 +218,9 @@ function MyLinks({
       const tagMatch =
         selectedTags.length === 0 ||
         selectedTags.every((tag) => link.tags.includes(tag))
-      const toneMatch = !classify.tone || link.tone === classify.tone
-      const themeMatch = !classify.theme || link.theme === classify.theme
-      const emotionMatch = !classify.emotion || link.emotion === classify.emotion
-      return tagMatch && toneMatch && themeMatch && emotionMatch
+      return tagMatch
     })
-  }, [links, selectedTags, classify])
+  }, [links, selectedTags])
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start px-6 py-8 overflow-x-hidden">
@@ -267,16 +249,6 @@ function MyLinks({
             <UploadLinkBox onAdd={handleAdd} ref={uploadRef} />
 
             <div className="mt-2 space-y-3">
-              <ClassifyFilter
-                toneOptions={toneOptions}
-                themeOptions={themeOptions}
-                emotionOptions={emotionOptions}
-                selectedTone={classify.tone}
-                selectedTheme={classify.theme}
-                selectedEmotion={classify.emotion}
-                onChange={setClassify}
-              />
-
               <TagFilter
                 tags={availableTags}
                 selected={selectedTags}
