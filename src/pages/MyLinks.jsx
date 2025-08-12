@@ -36,6 +36,9 @@ function normalizeItem(data, userId) {
     platform: data.platform || 'Unknown',
     language: data.language || 'unknown',
     description: data.description || '',
+    tone: data.tone ?? null,
+    theme: data.theme ?? null,
+    emotion: data.emotion ?? null,
     createdBy: data.createdBy || userId,
     createdAt: data.createdAt || new Date().toISOString(),
   }
@@ -117,6 +120,9 @@ function MyLinks() {
       const normalized = await Promise.all(
         items.map(async (item) => {
           const updated = normalizeItem(item, userId)
+          if (item.tone === undefined) { updated.tone = null; changed = true }
+          if (item.theme === undefined) { updated.theme = null; changed = true }
+          if (item.emotion === undefined) { updated.emotion = null; changed = true }
           if (!item.createdAt) changed = true
           if (!updated.summary) {
             try {
