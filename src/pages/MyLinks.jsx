@@ -33,6 +33,9 @@ function normalizeItem(data, userId) {
     url: data.url || data.link,
     title: data.title || '未命名',
     tags: Array.isArray(data.tags) ? data.tags : [],
+    tone: data.tone || '',
+    theme: data.theme || '',
+    emotion: data.emotion || '',
     platform: data.platform || 'Unknown',
     language: data.language || 'unknown',
     description: data.description || '',
@@ -59,6 +62,8 @@ function MyLinks() {
     for (const l of items) if (Array.isArray(l.tags)) for (const t of l.tags) counts[t] = (counts[t] || 0) + 1
     return counts
   }
+
+  // TODO: classification counts (tone/theme/emotion) can be added here later
 
   const increaseTagCounts = (tags) => {
     setTagCounts(prev => {
@@ -155,6 +160,7 @@ function MyLinks() {
 
   // 新增連結
   async function handleAdd(data) {
+    // tone/theme/emotion are passed through normalizeItem and persisted
     const base = normalizeItem(data, userId)
     let summary = ''
     try {
