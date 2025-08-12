@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../components/Header.jsx'
 
 function Home() {
@@ -13,6 +14,7 @@ function Home() {
           <li>用標籤整理與再搜尋</li>
           <li>一鍵預覽與二次分享</li>
         </ul>
+        <Link to="/my-links" className="btn">我的連結</Link>
       </div>
     </div>
   )
