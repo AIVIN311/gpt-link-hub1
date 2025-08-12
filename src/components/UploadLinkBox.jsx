@@ -1,10 +1,17 @@
 import { useEffect, useState, forwardRef } from 'react';
 
+const TONE_OPTIONS = ['Neutral', 'Friendly', 'Serious'];
+const THEME_OPTIONS = ['AI', 'Education', 'Art'];
+const EMOTION_OPTIONS = ['Positive', 'Neutral', 'Negative'];
+
 const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState(''); // 手動輸入（以逗號分隔）
   const [suggestions, setSuggestions] = useState([]); // [{ tag, selected }]
+  const [tone, setTone] = useState(null);
+  const [theme, setTheme] = useState(null);
+  const [emotion, setEmotion] = useState(null);
 
   useEffect(() => {
     const url = link.trim();
@@ -81,6 +88,9 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
       url,
       title: title.trim(),
       tags: merged,
+      tone,
+      theme,
+      emotion,
     });
 
     // 重置表單
@@ -88,6 +98,9 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
     setTitle('');
     setTags('');
     setSuggestions([]);
+    setTone(null);
+    setTheme(null);
+    setEmotion(null);
   };
 
   return (
@@ -111,6 +124,66 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+
+      <div>
+        <span className="text-sm text-gray-500">Tone</span>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {TONE_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setTone(tone === opt ? null : opt)}
+              className={`px-2 py-1 rounded-full border text-sm ${
+                tone === opt
+                  ? 'bg-blue-500 text-white border-blue-500'
+                  : 'bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="text-sm text-gray-500">Theme</span>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {THEME_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setTheme(theme === opt ? null : opt)}
+              className={`px-2 py-1 rounded-full border text-sm ${
+                theme === opt
+                  ? 'bg-blue-500 text-white border-blue-500'
+                  : 'bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="text-sm text-gray-500">Emotion</span>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {EMOTION_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => setEmotion(emotion === opt ? null : opt)}
+              className={`px-2 py-1 rounded-full border text-sm ${
+                emotion === opt
+                  ? 'bg-blue-500 text-white border-blue-500'
+                  : 'bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {suggestions.length > 0 && (
         <>
