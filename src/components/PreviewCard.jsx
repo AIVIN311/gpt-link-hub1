@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import PrimaryButton from './PrimaryButton'
 
-function PreviewCard({ title, description, summary, tags = [], url, onTagSelect }) {
+function PreviewCard({
+  title,
+  description,
+  tone,
+  theme,
+  emotion,
+  summary,
+  tags = [],
+  url,
+  onTagSelect,
+}) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -21,6 +31,28 @@ function PreviewCard({ title, description, summary, tags = [], url, onTagSelect 
       {displayText && (
         <p className="text-gray-700 whitespace-pre-line">{displayText}</p>
       )}
+
+      {/* Tone / Theme / Emotion */}
+      {(tone || theme || emotion) && (
+        <div className="flex flex-wrap gap-2">
+          {tone && (
+            <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-sm">
+              {tone}
+            </span>
+          )}
+          {theme && (
+            <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-sm">
+              {theme}
+            </span>
+          )}
+          {emotion && (
+            <span className="px-2 py-1 bg-gray-200 text-gray-800 rounded text-sm">
+              {emotion}
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         {displayTags.map((tag) => (
           <button

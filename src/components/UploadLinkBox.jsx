@@ -1,31 +1,29 @@
-import { useEffect, useState, forwardRef } from 'react';
+import { useEffect, useState, forwardRef } from 'react'
+
+const TONE_OPTIONS = ['搞笑', '理性', '正式', '輕鬆', '諷刺', '詩意']
+const THEME_OPTIONS = ['科技', '哲學', '藝術', '教育', '商業', '批判評論', '生活', '心理學']
+const EMOTION_OPTIONS = ['正面', '沉思', '輕鬆', '無奈', '憤怒', '平靜', '感動']
 
 const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
-  const [link, setLink] = useState('');
-  const [title, setTitle] = useState('');
-  const [tags, setTags] = useState(''); // 手動輸入（以逗號分隔）
-  const [suggestions, setSuggestions] = useState([]); // [{ tag, selected }]
-  const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null });
-
-  const tones = ['理性', '感性'];
-  const themes = ['科技', '生活'];
-  const emotions = ['開心', '難過'];
+  const [link, setLink] = useState('')
+  const [title, setTitle] = useState('')
+  const [tags, setTags] = useState('')                 // 手動輸入（以逗號分隔）
+  const [suggestions, setSuggestions] = useState([])   // [{ tag, selected }]
+  const [classify, setClassify] = useState({ tone: null, theme: null, emotion: null })
 
   const toggleClassify = (field, value) => {
-    setClassify((prev) => ({ ...prev, [field]: prev[field] === value ? null : value }));
-  };
+    setClassify(prev => ({ ...prev, [field]: prev[field] === value ? null : value }))
+  }
 
   useEffect(() => {
-    const url = link.trim();
-    const ttl = title.trim();
-
-    // 若沒有任何可分析文字，清空建議
+    const url = link.trim()
+    const ttl = title.trim()
     if (!url && !ttl) {
-      setSuggestions([]);
-      return;
+      setSuggestions([])
+      return
     }
 
-    const controller = new AbortController();
+    const controller = new AbortController()
     const handler = setTimeout(async () => {
       try {
         const res = await fetch('/api/agent/tagger', {
@@ -33,73 +31,64 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url, title: ttl }),
           signal: controller.signal,
-        });
-        const data = await res.json();
-
-        // 兼容兩種回傳：string[] 或 {tag, selected}[]
-        const arr = Array.isArray(data?.tags) ? data.tags : [];
-        const normalized = arr.map((t) =>
+        })
+        const data = await res.json()
+        const arr = Array.isArray(data?.tags) ? data.tags : []
+        const normalized = arr.map(t =>
           typeof t === 'string' ? { tag: t, selected: true } : { tag: t.tag, selected: !!t.selected }
-        );
-
-        // 去重並保留選取狀態（預設選取）
-        const seen = new Set();
-        const uniq = [];
+        )
+        const seen = new Set()
+        const uniq = []
         for (const s of normalized) {
-          const key = (s.tag || '').trim();
-          if (!key || seen.has(key)) continue;
-          seen.add(key);
-          uniq.push({ tag: key, selected: s.selected !== false });
+          const key = (s.tag || '').trim()
+          if (!key || seen.has(key)) continue
+          seen.add(key)
+          uniq.push({ tag: key, selected: s.selected !== false })
         }
-        setSuggestions(uniq);
+        setSuggestions(uniq)
       } catch {
-        // 靜默失敗：清空建議避免干擾使用者
-        setSuggestions([]);
+        setSuggestions([])
       }
-    }, 500); // debounce
+    }, 500)
 
     return () => {
-      clearTimeout(handler);
-      controller.abort();
-    };
-  }, [link, title]);
+      clearTimeout(handler)
+      controller.abort()
+    }
+  }, [link, title])
 
   const toggleSuggestion = (index) => {
-    setSuggestions((prev) =>
+    setSuggestions(prev =>
       prev.map((s, i) => (i === index ? { ...s, selected: !s.selected } : s))
-    );
-  };
+    )
+  }
 
   const handleSubmit = () => {
-    const url = link.trim();
-    if (!url) return;
+    const url = link.trim()
+    if (!url) return
 
-    // 手動標籤：逗號分隔 → 去頭尾空白 → 過濾空字串
-    const manual = tags
-      .split(',')
-      .map((t) => t.trim())
-      .filter((t) => t);
-
-    // 合併已選建議標籤
-    const merged = [...manual];
+    const manual = tags.split(',').map(t => t.trim()).filter(Boolean)
+    const merged = [...manual]
     for (const s of suggestions) {
-      if (s.selected && s.tag && !merged.includes(s.tag)) merged.push(s.tag);
+      if (s.selected && s.tag && !merged.includes(s.tag)) merged.push(s.tag)
     }
 
     onAdd({
       url,
       title: title.trim(),
       tags: merged,
-      classify,
-    });
+      tone: classify.tone,
+      theme: classify.theme,
+      emotion: classify.emotion,
+    })
 
-    // 重置表單
-    setLink('');
-    setTitle('');
-    setTags('');
-    setSuggestions([]);
-    setClassify({ tone: null, theme: null, emotion: null });
-  };
+    // 重置
+    setLink('')
+    setTitle('')
+    setTags('')
+    setSuggestions([])
+    setClassify({ tone: null, theme: null, emotion: null })
+  }
 
   return (
     <div className="bg-white p-3 md:p-4 rounded shadow space-y-3 w-full max-w-md text-sm md:text-base">
@@ -123,47 +112,58 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
         onChange={(e) => setTags(e.target.value)}
       />
 
-      {/* 分類選擇 chips */}
-      <div className="space-y-2">
-        <div className="flex flex-wrap gap-2" data-testid="tone-chips">
-          {tones.map((t) => (
+      {/* 語氣 */}
+      <div>
+        <span className="text-sm text-gray-500">語氣</span>
+        <div className="flex flex-wrap gap-2 mt-1" data-testid="tone-chips">
+          {TONE_OPTIONS.map(opt => (
             <button
-              key={t}
+              key={opt}
               type="button"
+              onClick={() => toggleClassify('tone', opt)}
               className={`px-2 py-1 rounded-full border text-sm ${
-                classify.tone === t ? 'bg-green-500 text-white border-green-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+                classify.tone === opt ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-200 text-gray-700 border-gray-200'
               }`}
-              onClick={() => toggleClassify('tone', t)}
             >
-              {t}
+              {opt}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2" data-testid="theme-chips">
-          {themes.map((t) => (
+      </div>
+
+      {/* 主題 */}
+      <div>
+        <span className="text-sm text-gray-500">主題</span>
+        <div className="flex flex-wrap gap-2 mt-1" data-testid="theme-chips">
+          {THEME_OPTIONS.map(opt => (
             <button
-              key={t}
+              key={opt}
               type="button"
+              onClick={() => toggleClassify('theme', opt)}
               className={`px-2 py-1 rounded-full border text-sm ${
-                classify.theme === t ? 'bg-green-500 text-white border-green-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+                classify.theme === opt ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-200 text-gray-700 border-gray-200'
               }`}
-              onClick={() => toggleClassify('theme', t)}
             >
-              {t}
+              {opt}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2" data-testid="emotion-chips">
-          {emotions.map((t) => (
+      </div>
+
+      {/* 情緒 */}
+      <div>
+        <span className="text-sm text-gray-500">情緒</span>
+        <div className="flex flex-wrap gap-2 mt-1" data-testid="emotion-chips">
+          {EMOTION_OPTIONS.map(opt => (
             <button
-              key={t}
+              key={opt}
               type="button"
+              onClick={() => toggleClassify('emotion', opt)}
               className={`px-2 py-1 rounded-full border text-sm ${
-                classify.emotion === t ? 'bg-green-500 text-white border-green-500' : 'bg-gray-200 text-gray-700 border-gray-200'
+                classify.emotion === opt ? 'bg-blue-500 text-white border-blue-500' : 'bg-gray-200 text-gray-700 border-gray-200'
               }`}
-              onClick={() => toggleClassify('emotion', t)}
             >
-              {t}
+              {opt}
             </button>
           ))}
         </div>
@@ -177,18 +177,14 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
               <button
                 type="button"
                 className="text-sm text-blue-600 hover:underline"
-                onClick={() =>
-                  setSuggestions((prev) => prev.map((s) => ({ ...s, selected: true })))
-                }
+                onClick={() => setSuggestions(prev => prev.map(s => ({ ...s, selected: true })))}
               >
                 全部加入
               </button>
               <button
                 type="button"
                 className="text-sm text-gray-500 hover:underline"
-                onClick={() =>
-                  setSuggestions((prev) => prev.map((s) => ({ ...s, selected: false })))
-                }
+                onClick={() => setSuggestions(prev => prev.map(s => ({ ...s, selected: false })))}
               >
                 全部取消
               </button>
@@ -219,8 +215,9 @@ const UploadLinkBox = forwardRef(function UploadLinkBox({ onAdd }, ref) {
         新增
       </button>
     </div>
-  );
-});
+  )
+})
 
-export default UploadLinkBox;
+export default UploadLinkBox
+
 
