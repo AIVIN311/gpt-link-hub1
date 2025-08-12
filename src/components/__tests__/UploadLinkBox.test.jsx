@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import UploadLinkBox from '../UploadLinkBox.jsx'
 import { vi } from 'vitest'
 
@@ -27,7 +27,7 @@ describe('UploadLinkBox tag suggestions', () => {
     expect(suggestionBox).toBeInTheDocument()
 
     // 預設為選取（藍色）
-    const aiButton = screen.getByText('AI')
+    const aiButton = within(suggestionBox).getByText('AI')
     expect(aiButton).toHaveClass('bg-blue-500')
 
     // 點一下切換為未選取（灰色）
