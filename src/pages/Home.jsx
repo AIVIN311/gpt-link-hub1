@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import Header from '../components/Header.jsx'
 
 function Home() {
@@ -14,20 +13,6 @@ function Home() {
           <li>用標籤整理與再搜尋</li>
           <li>一鍵預覽與二次分享</li>
         </ul>
-        <div className="mt-4 space-x-4">
-          <Link
-            to="/explore"
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            探索
-          </Link>
-          <Link
-            to="/my-links"
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            我的連結
-          </Link>
-        </div>
       </div>
     </div>
   )
